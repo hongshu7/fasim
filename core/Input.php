@@ -80,9 +80,9 @@ class Input {
 		unset($_GET);
 		$GLOBALS['_GET'] = $query_string_data;
 		
-		$this->_allow_get_array = (fs_app()->getConfig()->item('allow_get_array') !== FALSE);
-		$this->_enable_xss = (fs_app()->getConfig()->item('global_xss_filtering') === TRUE);
-		$this->_enable_csrf = (fs_app()->getConfig()->item('csrf_protection') === TRUE);
+		$this->_allow_get_array = (fasim_app()->getConfig()->item('allow_get_array') !== FALSE);
+		$this->_enable_xss = (fasim_app()->getConfig()->item('global_xss_filtering') === TRUE);
+		$this->_enable_csrf = (fasim_app()->getConfig()->item('csrf_protection') === TRUE);
 		
 		//关闭魔法转义
 		if (get_magic_quotes_gpc()) {
@@ -91,7 +91,7 @@ class Input {
 			$_COOKIE = $this->_stripslash($_COOKIE);
 		}
 		
-		$this->security = sl_app()->getSecurity();
+		$this->security = fasim_app()->getSecurity();
 		
 		//如果提交的是json，要进行转换
 		$this->_covert_json_post();
@@ -229,7 +229,7 @@ class Input {
 	 * @return string
 	 */
 	function cookie($name = '', $xss_clean = FALSE, $prefix='') {
-		$cfg = fs_app()->getConfig()->item('cookie');
+		$cfg = fasim_app()->getConfig()->item('cookie');
 		if ($prefix == '' and $cfg['prefix'] != '') {
 			$prefix = $cfg['prefix'];
 		}
@@ -271,7 +271,7 @@ class Input {
 				}
 			}
 		}
-		$cfg = fs_app()->getConfig()->item('cookie');
+		$cfg = fasim_app()->getConfig()->item('cookie');
 		if ($prefix == '' and $cfg['prefix'] != '') {
 			$prefix = $cfg['prefix'];
 		}
@@ -323,8 +323,8 @@ class Input {
 			return $this->ip_address;
 		}
 		
-		if (fs_app()->getConfig()->item('proxy_ips') != '' && $this->server('HTTP_X_FORWARDED_FOR') && $this->server('REMOTE_ADDR')) {
-			$proxies = preg_split('/[\s,]/', fs_app()->getConfig()->item('proxy_ips'), -1, PREG_SPLIT_NO_EMPTY);
+		if (fasim_app()->getConfig()->item('proxy_ips') != '' && $this->server('HTTP_X_FORWARDED_FOR') && $this->server('REMOTE_ADDR')) {
+			$proxies = preg_split('/[\s,]/', fasim_app()->getConfig()->item('proxy_ips'), -1, PREG_SPLIT_NO_EMPTY);
 			$proxies = is_array($proxies) ? $proxies : array($proxies);
 			
 			$this->ip_address = in_array($_SERVER['REMOTE_ADDR'], $proxies) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];

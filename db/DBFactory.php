@@ -29,7 +29,7 @@ class DBFactory {
 		$dbCfgKey = '';
 		if ($tableName == '') $dbCfgKey = '__default__';
 
-		$dbinfo = fs_app()->getConfig()->item('database');
+		$dbinfo = fasim_app()->getConfig()->item('database');
 		if ($dbinfo === null) {
 			throw new Exception('can not find database info in config.php', 1000);
 		}

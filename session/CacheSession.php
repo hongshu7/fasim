@@ -8,7 +8,7 @@ class CacheSession implements ISession {
 		$this->prefix = empty($prefix) ? '' : $prefix;
 		$sessionId = $_COOKIE['PHPSESSID'];
 		if (!$_COOKIE['PHPSESSID']) {
-			$cookieConfig = fs_app()->getConfig()->item('cookie');
+			$cookieConfig = fasim_app()->getConfig()->item('cookie');
 			$sessionId = md5($_SERVER["REMOTE_ADDR"].$_SERVER["HTTP_USER_AGENT"].time()+rand(0, 10000));
 			setcookie('PHPSESSID', $sessionId, 0, $cookieConfig['path'], $cookieConfig['domain'], $cookieConfig['secure']);
 		}

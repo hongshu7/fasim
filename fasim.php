@@ -15,7 +15,7 @@ require_once FS_PATH . 'core' . DIRECTORY_SEPARATOR . 'Application.php';
  * 获取当前app
  * @return SLApplication
  */
-function sl_app() {
+function fasim_app() {
 	static $app = null;
 	if ($app == null) {
 		$app = new \Fasim\Core\Application();

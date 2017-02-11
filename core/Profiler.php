@@ -96,15 +96,15 @@ class Profiler {
 	protected function _compile_benchmarks()
 	{
 		$profile = array();
-		foreach (sl_app()->getBenchmark->marker as $key => $val)
+		foreach (fasim_app()->getBenchmark->marker as $key => $val)
 		{
 			// We match the "end" marker so that the list ends
 			// up in the order that it was defined
 			if (preg_match("/(.+?)_end/i", $key, $match))
 			{
-				if (isset(sl_app()->getBenchmark->marker[$match[1].'_end']) AND isset(sl_app()->getBenchmark->marker[$match[1].'_start']))
+				if (isset(fasim_app()->getBenchmark->marker[$match[1].'_end']) AND isset(fasim_app()->getBenchmark->marker[$match[1].'_start']))
 				{
-					$profile[$match[1]] = sl_app()->getBenchmark->elapsed_time($match[1].'_start', $key);
+					$profile[$match[1]] = fasim_app()->getBenchmark->elapsed_time($match[1].'_start', $key);
 				}
 			}
 		}

@@ -22,12 +22,12 @@ class SessionFactory {
 		}
 		
 		// 获取数据库配置信息
-		if (!fs_app()->getConfig()->hasItem('session')) {
+		if (!fasim_app()->getConfig()->hasItem('session')) {
 			throw new \Fasim\Core\Exception('Can not find session info in config.php', 1000);
 			exit();
 		}
 		
-		$config = fs_app()->getConfig()->item('session');
+		$config = fasim_app()->getConfig()->item('session');
 
 		$sessionObj = null;
 		switch ($config['type']) {

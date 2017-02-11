@@ -337,7 +337,7 @@ class Output {
 		// Parse out the elapsed time and memory usage,
 		// then swap the pseudo-variables with the data
 		
-		$elapsed = sl_app()->getBenchmark()->elapsedTime('total_execution_time_start', 'total_execution_time_end');
+		$elapsed = fasim_app()->getBenchmark()->elapsedTime('total_execution_time_start', 'total_execution_time_end');
 		
 		if ($this->parse_exec_vars === TRUE) {
 			$memory = (!function_exists('memory_get_usage')) ? '0' : round(memory_get_usage() / 1024 / 1024, 2) . 'MB';
@@ -349,7 +349,7 @@ class Output {
 		// --------------------------------------------------------------------
 		
 		// Is compression requested?
-		if (fs_app()->getConfig()->item('compress_output') === TRUE && $this->_zlib_oc == FALSE) {
+		if (fasim_app()->getConfig()->item('compress_output') === TRUE && $this->_zlib_oc == FALSE) {
 			if (extension_loaded('zlib')) {
 				if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) and strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== FALSE) {
 					ob_start('ob_gzhandler');
@@ -374,7 +374,7 @@ class Output {
 		if ($this->enable_profiler == TRUE) {
 			
 			if (!empty($this->_profiler_sections)) {
-				sl_app()->getProfiler->set_sections($this->_profiler_sections);
+				fasim_app()->getProfiler->set_sections($this->_profiler_sections);
 			}
 			
 			// If the output data contains closing </body> and </html> tags
@@ -382,10 +382,10 @@ class Output {
 			// data
 			if (preg_match("|</body>.*?</html>|is", $output)) {
 				$output = preg_replace("|</body>.*?</html>|is", '', $output);
-				$output .= sl_app()->getProfiler()->run();
+				$output .= fasim_app()->getProfiler()->run();
 				$output .= '</body></html>';
 			} else {
-				$output .= sl_app()->getProfiler->run();
+				$output .= fasim_app()->getProfiler->run();
 			}
 		}
 		

@@ -75,14 +75,14 @@ class Security {
 	public function __construct() {
 		// CSRF config
 		foreach (array('csrf.expire', 'csrf.token_name', 'csrf.cookie_name') as $key) {
-			if (false !== ($val = fs_app()->getConfig()->item($key, false))) {
+			if (false !== ($val = fasim_app()->getConfig()->item($key, false))) {
 				$this->{'_' . $key} = $val;
 			}
 		}
 		
 		// Append application specific cookie prefix
-		if (fs_app()->getConfig()->item('cookie.prefix')) {
-			$this->_csrf_cookie_name = fs_app()->getConfig()->item('cookie.prefix') . $this->_csrf_cookie_name;
+		if (fasim_app()->getConfig()->item('cookie.prefix')) {
+			$this->_csrf_cookie_name = fasim_app()->getConfig()->item('cookie.prefix') . $this->_csrf_cookie_name;
 		}
 		
 		// Set the CSRF hash
@@ -138,7 +138,7 @@ class Security {
 	 */
 	public function csrf_set_cookie() {
 		$expire = time() + $this->_csrf_expire;
-		$secure_cookie = (fs_app()->getConfig()->item('cookie.secure') === TRUE) ? 1 : 0;
+		$secure_cookie = (fasim_app()->getConfig()->item('cookie.secure') === TRUE) ? 1 : 0;
 		
 		if ($secure_cookie) {
 			$req = isset($_SERVER['HTTPS']) ? $_SERVER['HTTPS'] : FALSE;
@@ -148,7 +148,7 @@ class Security {
 			}
 		}
 		
-		setcookie($this->_csrf_cookie_name, $this->_csrf_hash, $expire, fs_app()->getConfig()->item('cookie.path'), fs_app()->getConfig()->item('cookie.domain'), $secure_cookie);
+		setcookie($this->_csrf_cookie_name, $this->_csrf_hash, $expire, fasim_app()->getConfig()->item('cookie.path'), fasim_app()->getConfig()->item('cookie.domain'), $secure_cookie);
 		
 		log_message('debug', "CRSF cookie Set");
 		
@@ -645,7 +645,7 @@ class Security {
 	 * @return string
 	 */
 	protected function _decode_entity($match) {
-		return $this->entity_decode($match[0], strtoupper(fs_app()->getConfig()->item('charset')));
+		return $this->entity_decode($match[0], strtoupper(fasim_app()->getConfig()->item('charset')));
 	}
 	
 	// --------------------------------------------------------------------

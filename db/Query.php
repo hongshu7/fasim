@@ -20,7 +20,7 @@ class Query {
 	 *        	表名
 	 */
 	public function __construct($modelClass) {
-		$this->tablePrefix = fs_app()->getConfig()->item('database.table_prefix');
+		$this->tablePrefix = fasim_app()->getConfig()->item('database.table_prefix');
 		$this->modelClass = '\\' . $modelClass;
 	}
 

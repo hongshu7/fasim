@@ -27,7 +27,7 @@ class Mysql implements IDB {
 			$this->_config = $this->parseDsn($this->_config);
 		}*/ // parse dsn at factory class
 
-		$this->_debug = fs_app()->getConfig()->item('debug');
+		$this->_debug = fasim_app()->getConfig()->item('debug');
 
 		$config = $this->_config;
 

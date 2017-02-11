@@ -22,12 +22,12 @@ class CacheFactory {
 		}
 		
 		// 获取数据库配置信息
-		if (!fs_app()->getConfig()->hasItem('cache')) {
+		if (!fasim_app()->getConfig()->hasItem('cache')) {
 			throw new \Fasim\Core\Exception('Can not find cache info in config.php', 1000);
 			exit();
 		}
 		
-		$config = fs_app()->getConfig()->item('cache');
+		$config = fasim_app()->getConfig()->item('cache');
 
 		$cacheObj = null;
 		switch ($config['type']) {
