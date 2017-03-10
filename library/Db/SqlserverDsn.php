@@ -1,8 +1,8 @@
 <?php
 
-namespace SpeedLight\Library\Db;
+namespace Fasim\Library\Db;
 
-use SpeedLight\Library\DbDsn;
+use Fasim\Library\DbDsn;
 
 /**
  * SqlserverDsn

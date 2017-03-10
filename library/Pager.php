@@ -1,5 +1,10 @@
 <?php
-namespace SpeedLight\Library;
+/**
+ * @copyright Copyright(c) 2012 Fasim
+ * @author Kevin Lai<lhs168@gmail.com>
+ */
+ 
+namespace Fasim\Library;
 
 class Pager {
 

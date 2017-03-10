@@ -1,18 +1,21 @@
 <?php
 /**
- * @copyright Copyright(c) 2012 microcms.cn
+ * @copyright Copyright(c) 2012 Fasim
  * @author Kevin Lai<lhs168@gmail.com>
- * @version $Id: [to change] $;
  */
 
-/**
+namespace Fasim\Library;
+
+class Validator {
+
+	/**
 	 * Email格式验证
 	 *
 	 * @param string $str
 	 *        	需要验证的字符串
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 */
-	function is_email($str = '') {
+	public static function isEmail($str = '') {
 		return (bool)preg_match('/^\w+([-+.]\w+)*@\w+([-.]\w+)+$/i', $str);
 	}
 
@@ -23,7 +26,7 @@
 	 *        	需要验证的字符串
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 */
-	function is_qq($str = '') {
+	public static function isQQ($str = '') {
 		return (bool)preg_match('/^[1-9][0-9]{4,}$/i', $str);
 	}
 
@@ -34,7 +37,7 @@
 	 *        	需要验证的字符串
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 */
-	function is_id($str = '') {
+	public static function isID($str = '') {
 		return (bool)preg_match('/^\d{15}(\d{2}[0-9x])?$/i', $str);
 	}
 
@@ -46,7 +49,7 @@
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 *         @note IPV6暂时不支持。
 	 */
-	function is_ip($str = '') {
+	public static function isIP($str = '') {
 		return (bool)preg_match('/^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/i', $str);
 	}
 
@@ -58,7 +61,7 @@
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 *         @note 此邮编验证只适合中国
 	 */
-	function is_zip($str = '') {
+	public static function isZip($str = '') {
 		return (bool)preg_match('/^\d{6}$/i', $str);
 	}
 
@@ -69,7 +72,7 @@
 	 *        	需要验证的字符串
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 */
-	function is_telephone($str = '') {
+	public static function isTelephone($str = '') {
 		return (bool)preg_match('/^((\d{3,4})|\d{3,4}-)?\d{7,8}(-\d+)*$/i', $str);
 	}
 
@@ -79,7 +82,7 @@
 	 * @param string $str        	
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 */
-	function is_mobilephone($str = '') {
+	public static function isMobilephone($str = '') {
 		return (bool)preg_match("!^1[0-9]{10}$!", $str);
 	}
 
@@ -94,7 +97,7 @@
 	 *        	最大长度，默认是16。
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 */
-	function is_username($str, $minlen = 4, $maxlen = 16) {
+	public static function isUsername($str, $minlen = 4, $maxlen = 16) {
 		return (bool)preg_match('/^[a-zA-Z][a-zA-Z0-9_]{' . $minlen . ',' . $maxlen . '}$/i', $str);
 	}
 
@@ -106,28 +109,9 @@
 	 *        	要检测的Url地址字符串
 	 * @return bool 验证通过返回 true 不通过返回 false
 	 */
-	function is_url($str = '') {
+	public static function isUrl($str = '') {
 		return (bool)preg_match('/^[a-zA-z]+:\/\/(\w+(-\w+)*)(\.(\w+(-\w+)*))+(\/?\S*)?$/i', $str);
 	}
 
 
-	/**
-	 * 验证字符串的长度，和数值的大小。$str 为字符串时，判定长度是否在给定的$min到$max之间的长度，为数值时，判定数值是否在给定的区间内。
-	 *
-	 * @param mixed $str
-	 *        	要验证的内容
-	 * @param int $min
-	 *        	最小值或最小长度
-	 * @param int $max
-	 *        	最大值或最大长度
-	 * @return bool 验证通过返回 true 不通过返回 false
-	 */
-	function check_length($str, $min, $max) {
-		if (is_int($str))
-			return $str >= $min && $str <= $max;
-		if (is_string($str))
-			return strlen($str) >= $min && strlen($str) <= $max;
-		return false;
-	}
-
-
+}

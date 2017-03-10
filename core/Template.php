@@ -18,8 +18,8 @@ class Template{
 	private $objfile;
 	private $vars=array();
 	private $force =0;
-	private $var_regexp = "\@?\\\$[a-z_][\\\$\w]*(?:\[[\w\-\.\"\'\[\]\$]+\])*";
-	private $vtag_regexp = "\<\?php echo (\@?\\\$[a-zA-Z_][\\\$\w]*(?:\[[\w\-\.\"\'\[\]\$]+\])*)\?\>";
+	private $var_regexp = "\@?\\\$[a-z_][\\\$\w]*(?:\[[\w\-\.\"\'\[\]\$]+\])*(?:\.[\w\-\$]+)*";
+	private $vtag_regexp = "\<\?php echo (\@?\\\$[a-zA-Z_][\\\$\w]*(?:\[[\w\-\.\"\'\[\]\$]+\])*);?\?\>";
 	private $const_regexp = "\{([a-zA-Z_]\w*)\}";
 
 	private $langitems = array();
@@ -100,10 +100,10 @@ class Template{
 		$template = $this->readFromFile($this->tplfile);
 		$template = preg_replace("/\<\!\-\-\{(.+?)\}\-\-\>/s", "{\\1}", $template);
 
-		$template = preg_replace("/\{($this->var_regexp)\}/", "<?php echo \\1?>", $template);
+		$template = preg_replace("/\{($this->var_regexp)\}/e", "\$this->parseVar('\\1')", $template);
 		$template = preg_replace("/\{($this->const_regexp)\}/", "<?php echo \\1?>", $template);
 
-		$template = preg_replace("/(?<!\<\?php echo |\\\\)$this->var_regexp/", "<?php echo \\0?>", $template);
+		$template = preg_replace("/(?<!\<\?php echo |\\\\)$this->var_regexp/e", "\$this->parseVar('\\0')", $template);
 		
 		$template = preg_replace('/^\s*{(\/?)(loop|for)/im', '{\1\2', $template);
 		
@@ -149,6 +149,14 @@ class Template{
 		$v = $this->stripvtag($v);
 		$statement = str_replace("\\\"", '"', $statement);
 		return $k ? "<?php foreach((array)$arr as $k=>$v) {?>$statement<?php }?>" : "<?php foreach((array)$arr as $v) {?>$statement<?php } ?>\r\n";
+	}
+
+	private function parseVar($tpl, $withTag=true) {
+		while (($i = strpos($tpl, '.')) !== false) {
+			$tpl = substr($tpl, 0, $i)."['".substr($tpl, $i + 1)."']";
+		}
+		
+		return $withTag ? "<?php echo $tpl;?>" : $tpl;
 	}
 
 	private function parseInclude($tpl) {

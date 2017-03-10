@@ -1,6 +1,10 @@
 <?php
-
-namespace SpeedLight\Library;
+/**
+ * @copyright Copyright(c) 2012 Fasim
+ * @author Kevin Lai<lhs168@gmail.com>
+ */
+ 
+namespace Fasim\Library;
 
 /**
  * Dsn
@@ -15,23 +19,23 @@ class Dsn
  * @var array
  */
     protected static $schemeMap = [
-        'cassandra' => '\SpeedLight\Library\Db\CassandraDsn',
-        'couch' => '\SpeedLight\Library\Db\CouchdbDsn',
-        'couchdb' => '\SpeedLight\Library\Db\CouchdbDsn',
-        'db' => '\SpeedLight\Library\DbDsn',
-        'maria' => '\SpeedLight\Library\Db\MysqlDsn',
-        'mariadb' => '\SpeedLight\Library\Db\MysqlDsn',
-        'mongo' => '\SpeedLight\Library\Db\MongodbDsn',
-        'mongodb' => '\SpeedLight\Library\Db\MongodbDsn',
-        'mssql' => '\SpeedLight\Library\Db\SqlserverDsn',
-        'mysql' => '\SpeedLight\Library\Db\MysqlDsn',
-        'oracle' => '\SpeedLight\Library\Db\OracleDsn',
-        'pg' => '\SpeedLight\Library\Db\PostgresDsn',
-        'pgsql' => '\SpeedLight\Library\Db\PostgresDsn',
-        'postgres' => '\SpeedLight\Library\Db\PostgresDsn',
-        'sqlite' => '\SpeedLight\Library\Db\SqliteDsn',
-        'sqlite3' => '\SpeedLight\Library\Db\SqliteDsn',
-        'sqlserver' => '\SpeedLight\Library\Db\SqlserverDsn',
+        'cassandra' => '\Fasim\Library\Db\CassandraDsn',
+        'couch' => '\Fasim\Library\Db\CouchdbDsn',
+        'couchdb' => '\Fasim\Library\Db\CouchdbDsn',
+        'db' => '\Fasim\Library\DbDsn',
+        'maria' => '\Fasim\Library\Db\MysqlDsn',
+        'mariadb' => '\Fasim\Library\Db\MysqlDsn',
+        'mongo' => '\Fasim\Library\Db\MongodbDsn',
+        'mongodb' => '\Fasim\Library\Db\MongodbDsn',
+        'mssql' => '\Fasim\Library\Db\SqlserverDsn',
+        'mysql' => '\Fasim\Library\Db\MysqlDsn',
+        'oracle' => '\Fasim\Library\Db\OracleDsn',
+        'pg' => '\Fasim\Library\Db\PostgresDsn',
+        'pgsql' => '\Fasim\Library\Db\PostgresDsn',
+        'postgres' => '\Fasim\Library\Db\PostgresDsn',
+        'sqlite' => '\Fasim\Library\Db\SqliteDsn',
+        'sqlite3' => '\Fasim\Library\Db\SqliteDsn',
+        'sqlserver' => '\Fasim\Library\Db\SqlserverDsn',
     ];
 
 /**

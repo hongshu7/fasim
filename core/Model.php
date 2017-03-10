@@ -143,8 +143,8 @@ class Model {
 		$v = $this->setValue($key, $value);
 		if ($v !== null && $this->data[$key] !== $v) {
 			$this->data[$key] = $v;
-			//主键不存
-			if ((is_array($this->primaryKey) && !in_array($key, $this->primaryKey)) || $key != $this->primaryKey) {
+			//新建model及主键不存
+			if (!$this->isNew && (is_array($this->primaryKey) && !in_array($key, $this->primaryKey)) || $key != $this->primaryKey) {
 				$this->needUpdates[] = $key;
 			}
 		}

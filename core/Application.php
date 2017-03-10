@@ -134,7 +134,15 @@ class Application {
 			} else if ($components[1] == 'Library') {
 				$path = APP_LIBRARY_PATH . $components[2] . '.php';
 			} 
-		}
+		} //else {
+		// 	//其它
+		// 	$className = array_pop($components);
+		// 	$classDir = '';
+		// 	if (count($components) > 0) {
+		// 		$classDir = implode(DIRECTORY_SEPARATOR, $components) . DIRECTORY_SEPARATOR;	
+		// 	}
+		// 	$path = APP_LIBRARY_PATH . $classDir . $className . '.php';
+		// }
 		if ($path != '') {
 			if (file_exists($path)) {
 				require_once $path;
@@ -251,7 +259,9 @@ class Application {
 
 		} catch (\Exception $exception) {
 			
-			if ($this->currentController == null) $this->currentController = new Controller($this, ''); //默认的controller
+			if ($this->currentController == null) {
+				$this->currentController = new Controller($this, ''); //默认的controller
+			}
 			
 			//触发事件
 			$this->eventDispatcher->dispatchEvent(new \Fasim\Event\ExceptionEvent(\Fasim\Event\Event::$EXCEPTION, $exception));
@@ -322,14 +332,12 @@ class Application {
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$CONTROLLER_START));
 
 		$controllerClassName = '\\App\\Controller\\'.ucfirst($controller).'Controller';
-		if (class_exists($controllerClassName)) {
+		$controllerInst = null;
+		try {
 			$controllerInst = new $controllerClassName($this, $controller, $queryString);
-		}
-		
-		if ($controllerInst == null) {
+		} catch (\Exception $exception) {
 			throw new Exception("Controller:$controller not found!", 404);
 		}
-
 
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$ACTION_START));
 		// 执行方法

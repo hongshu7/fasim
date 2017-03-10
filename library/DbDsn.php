@@ -1,6 +1,6 @@
 <?php
 
-namespace SpeedLight\Library;
+namespace Fasim\Library;
 
 /**
  * DbDsn

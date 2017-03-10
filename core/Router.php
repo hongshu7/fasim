@@ -46,7 +46,8 @@ class Router {
 	public function init() {
 		$wd = $this->getWebsiteDirectory();
 		
-		$fixedRequestUri = substr($_SERVER['REQUEST_URI'], strlen($wd));
+		$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
+		$fixedRequestUri = substr($requestUri, strlen($wd));
 
 		//check is contain "index.php"
 		if (strlen($fixedRequestUri) >= 9 && substr($fixedRequestUri, 0, 9) == 'index.php') {
@@ -64,16 +65,16 @@ class Router {
 		}
 
 		//fix url
+		while (strpos($uriPath, '//') !== false) {
+			$uriPath = str_replace('//', '/', $uriPath);
+		}
+
 		while (substr($uriPath, 0, 1) == '/') {
 			$uriPath = substr($uriPath, 1);
 		}
 		
 		while (substr($uriPath, -1) == '/') {
 			$uriPath = substr($uriPath, 0, -1);
-		}
-
-		while (strpos($uriPath, '//') !== false) {
-			$uriPath = str_replace('//', '/', $uriPath);
 		}
 
 		$this->uriPath = '/'.$uriPath;
@@ -175,9 +176,13 @@ class Router {
 	}
 
 	public function getWebsiteDirectory() {
-		$script_name = $_SERVER['SCRIPT_NAME'];
-		$directory_info = explode('index.php', $script_name);
-		return empty($directory_info[0]) ? '/' : $directory_info[0];
+		$scriptName = $_SERVER['SCRIPT_NAME'];
+		if ($scriptName == '' || $scriptName{0} != '/') {
+			$scriptName = '/'.$scriptName;
+		}
+		$directories = explode('/', $scriptName);
+		array_pop($directories);
+		return implode('/', $directories) . '/';
 	}
 	
 	/**
