@@ -279,6 +279,14 @@ class Model {
 		return self::query()->where($data);
 	}
 
+	public static function listAll() {
+		return self::where([])->find();
+	}
+
+	public static function listLatest($count=1) {
+		return self::where([])->sort('_id', 'DESC')->limit($count)->find();
+	}
+
 	public static function get($value) {
 		$m = new static();
 		$primaryKeys = is_array($m->getPrimaryKey()) ? $m->getPrimaryKey() : [$m->getPrimaryKey()];
@@ -304,10 +312,10 @@ class Model {
 		return $m->fromArray($source);
 	}
 
-	public static function modelsToArray($objList) {
+	public static function modelsToArray($objList, $filter='') {
 		$arrays = [];
 		foreach ($objList as $obj) {
-			$arrays[] = $obj->toArray();
+			$arrays[] = $obj->toArray($filter);
 		}
 		return $arrays;
 	}
