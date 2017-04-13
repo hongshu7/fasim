@@ -10,6 +10,7 @@ if (!defined('FS_PATH')) {
 	define('FS_PATH', dirname(__file__) . DIRECTORY_SEPARATOR);
 }
 require_once FS_PATH . 'core' . DIRECTORY_SEPARATOR . 'Application.php';
+require_once FS_PATH . 'core' . DIRECTORY_SEPARATOR . 'Application.php';
 
 /**
  * 获取当前app

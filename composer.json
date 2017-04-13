@@ -3,17 +3,18 @@
     "description": "a fast and simple framework",
     "type": "library",
     "license": "GPL",
+    "version": "0.1.0",
     "authors": [
         {
             "name": "Kevin Lai",
             "email": "lhs168@gmail.com"
         }
     ],
-    "minimum-stability": "beta",
+    "minimum-stability": "dev",
     "require": {},
 	"autoload": {
         "psr-4": {
-            "Fasim\\": "src/"
+            "Fasim\\": "src/Fasim"
         }
     }
 }
