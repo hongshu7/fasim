@@ -1,0 +1,19 @@
+{
+    "name": "lhs168/fasim",
+    "description": "a fast and simple framework",
+    "type": "library",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Kevin Lai",
+            "email": "lhs168@gmail.com"
+        }
+    ],
+    "minimum-stability": "beta",
+    "require": {},
+	"autoload": {
+        "psr-4": {
+            "Fasim\\": "src/"
+        }
+    }
+}
