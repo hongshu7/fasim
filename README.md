@@ -1,6 +1,6 @@
 Fasim -- a fast and simple php framework
 -----------
-Fasim是一个快速、简单却有强大的php的框架。
+Fasim是一个快速、简单却又强大的php的框架。
 - 快速、简单、易于使用。
 - 专门对大访问量网站进行过优化。
 - 支持多种缓存、日志、数据库。
