@@ -6,6 +6,7 @@
 namespace Fasim\Db;
 
 use Fasim\Core\Exception;
+use Fasim\Core\ModelArray;
 /**
  * DB 系统统一查询类
  */
@@ -33,7 +34,7 @@ class Query {
 		//todo: check table exists
 		$db = DBFactory::getDB($this->data['table']);
 		$result = $db->find($this->data);
-		$ret = array();
+		$ret = new ModelArray();
 		foreach ((array)$result as $row) {
 			$model = new $this->modelClass();
 			$model->setNotNew();
