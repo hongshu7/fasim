@@ -6,10 +6,9 @@
 
 namespace Fasim\Core;
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
+if (!defined('FS_PATH')) {
+	define('FS_PATH', dirname(dirname(__file__)) . DIRECTORY_SEPARATOR);
 }
-
 if (!defined('APP_PATH')) {
 	define('APP_PATH', dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'app'. DIRECTORY_SEPARATOR);
 }
@@ -22,11 +21,11 @@ if (!defined('APP_CONTROLLER_PATH')) {
 if (!defined('APP_MODEL_PATH')) {
 	define('APP_MODEL_PATH', APP_PATH . 'models'. DIRECTORY_SEPARATOR);
 }
-if (!defined('APP_LIBRARY_PATH')) {
-	define('APP_LIBRARY_PATH', APP_PATH . 'libraries'. DIRECTORY_SEPARATOR);
-}
 if (!defined('APP_DATA_PATH')) {
 	define('APP_DATA_PATH', APP_PATH . 'data'. DIRECTORY_SEPARATOR);
+}
+if (!defined('APP_LIBRARY_PATH')) {
+	define('APP_LIBRARY_PATH', APP_PATH . 'libraries'. DIRECTORY_SEPARATOR);
 }
 if (!defined('APP_PLUGIN_PATH')) {
 	define('APP_PLUGIN_PATH', APP_PATH . 'plugins'. DIRECTORY_SEPARATOR);
@@ -37,7 +36,6 @@ if (!defined('APP_VIEW_PATH')) {
 
 require_once  APP_CONFIG_PATH . 'constants.php';
 
-use \Fasim;
 
 /**
  * SLApplication 创建应用的基本类
@@ -67,24 +65,6 @@ class Application {
 	 * @var Router
 	 */
 	private $router;
-	
-	/**
-	 * 系统安全类
-	 * @var Security
-	 */
-	private $security;
-	
-	/**
-	 * Profiler
-	 * @var Profiler
-	 */
-	private $profiler;
-	
-	/**
-	 * Benchmark
-	 * @var Benchmark
-	 */
-	private $benchmark;
 
 	/**
 	 * 当前Controller
@@ -98,10 +78,18 @@ class Application {
 	 */
 	private $plugins;
 
+	private static $instance;
+	public static function getInstance() {
+		if (self::$instance == null) {
+			self::$instance = new Application();
+		}
+		return self::$instance;
+	}
+
 	/**
 	 * Application构造函数
 	 */
-	public function __construct() {
+	private function __construct() {
 		$startTime = microtime(true);
 
 		spl_autoload_register(array($this, 'autoloader'));
@@ -119,14 +107,9 @@ class Application {
 	//自动加载类
 	public function autoloader($class) {
 		$components = explode('\\', $class);
-		$path = '';
-		if ($components[0] == 'Fasim') {
-			$components[1] = strtolower($components[1]);
-			unset($components[0]);
-			$path = implode(DIRECTORY_SEPARATOR, $components);
-			//echo $path.'<br>';
-			$path = FS_PATH . $path . '.php';
-		} else if ($components[0] == 'App') {
+		
+		if ($components[0] == 'App') {
+			$path = '';
 			if ($components[1] == 'Controller') {
 				$path = APP_CONTROLLER_PATH . $components[2] . '.php';
 			} else if ($components[1] == 'Model') {
@@ -134,22 +117,15 @@ class Application {
 			} else if ($components[1] == 'Library') {
 				$path = APP_LIBRARY_PATH . $components[2] . '.php';
 			} 
-		} //else {
-		// 	//其它
-		// 	$className = array_pop($components);
-		// 	$classDir = '';
-		// 	if (count($components) > 0) {
-		// 		$classDir = implode(DIRECTORY_SEPARATOR, $components) . DIRECTORY_SEPARATOR;	
-		// 	}
-		// 	$path = APP_LIBRARY_PATH . $classDir . $className . '.php';
-		// }
-		if ($path != '') {
-			if (file_exists($path)) {
-				require_once $path;
-				return true;
-			} else {
-				throw new Exception('Can not found class ' .$class, 500);
-				return false;
+		
+			if ($path != '') {
+				if (file_exists($path)) {
+					require_once $path;
+					return true;
+				} else {
+					throw new Exception('Can not found class ' .$class, 500);
+					return false;
+				}
 			}
 		}
 		return false;
@@ -178,30 +154,6 @@ class Application {
 	 */
 	public function getRouter() {
 		return $this->router;
-	}
-	
-	/**
-	 * 系统安全类
-	 * @var Security
-	 */
-	public function getSecurity() {
-		return $this->security;
-	}
-
-	/**
-	 * Profiler
-	 * @var Profiler
-	 */
-	public function getProfiler() {
-		return $this->profiler;
-	}
-
-	/**
-	 * Benchmark
-	 * @var Benchmark
-	 */
-	public function getBenchmark() {
-		return $this->benchmark;
 	}
 
 
@@ -308,15 +260,12 @@ class Application {
 		$timezone = $this->config->item('timezone', 'Asia/Shanghai');
 		date_default_timezone_set($timezone);
 
-		$this->profiler = null; 
-		$this->benchmark = new Benchmark();
-		$this->security = new Security();
-
 		//路由
 		$this->config->load('router', true);
 		$routers = $this->config->sections('router');
 		$this->router = new Router($routers);
-		
+		//reset $_GET
+		$_GET = $this->router->getQueryArray();
 		
 		//设置调试模式
 		$debugMode = $this->config->item('debug') === true;

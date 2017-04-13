@@ -5,9 +5,6 @@
  */
 namespace Fasim\Core;
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
-}
 
 /**
  * @class SLRouter

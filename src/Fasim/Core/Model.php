@@ -5,9 +5,6 @@
  */
 namespace Fasim\Core;
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
-}
 
 use \Fasim\Db\Query;
 use \Fasim\Db\DBFactory;

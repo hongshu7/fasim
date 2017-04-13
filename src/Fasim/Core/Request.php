@@ -5,26 +5,22 @@
  */
 namespace Fasim\Core;
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
-}
 
 /**
- * @class SLInput
+ * @class Request
  * 输入类
  */
 class Request {
 	
 	
-	protected $input;
 	/**
 	 * Constructor
 	 *
 	 * Sets whether to globally enable the XSS processing
 	 * and whether to allow the $_GET array
 	 */
-	public function __construct($input) {
-		$this->input = $input;
+	public function __construct() {
+
 	}
 	
 	
@@ -43,9 +39,9 @@ class Request {
 	function string($index = '', $isTrim = true) {
 		$value = '';
 		if (isset($_POST[$index])) {
-			$value = $this->input->post($index, true);
+			$value = $_POST[$index];
 		} else if (isset($_GET[$index])) {
-			$value = $this->input->get($index, true);
+			$value = $_GET[$index];
 		}
 		return $isTrim ? trim($value) : $value;
 	}
@@ -65,9 +61,9 @@ class Request {
 	function intval($index = '', $default = 0) {
 		$value = $default;
 		if (isset($_POST[$index])) {
-			$value = $this->input->post($index, true);
+			$value = $_POST[$index];
 		} else if (isset($_GET[$index])) {
-			$value = $this->input->get($index, true);
+			$value = $_GET[$index];
 		}
 		return intval($value);
 	}

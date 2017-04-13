@@ -5,10 +5,6 @@ namespace Fasim\Core;
  * @author Kevin Lai<lhs168@gmail.com>
  */
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
-}
-
 
 /**
  * SLPlugin 插件基类

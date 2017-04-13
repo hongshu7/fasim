@@ -5,9 +5,6 @@
  */
 namespace Fasim\Core;
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
-}
 /**
  * SLController 控制器基类
  */
@@ -42,19 +39,9 @@ class Controller {
 	public $config;
 	/**
 	 * 系统输入类
-	 * @var Input
-	 */
-	public $input;
-	/**
-	 * 系统输入类
 	 * @var Request
 	 */
 	public $request;
-	/**
-	 * 系统输出类
-	 * @var Output
-	 */
-	public $output;
 	/**
 	 * Session类
 	 * @var Session
@@ -79,10 +66,7 @@ class Controller {
 		//初始化系统配置
 		$this->router = $this->app->getRouter();
 
-		//输入与输出
-		$this->input = new Input($this->router->getQueryArray());
-		$this->request = new Request($this->input);
-		$this->output = new Output();
+		$this->request = new Request();
 
 		$this->session = \Fasim\Session\SessionFactory::getSession();
 
@@ -190,10 +174,9 @@ class Controller {
 	 */
 	public function display($html) {
 		
-		$this->output->setContentType($this->contentType.';charset='.$this->charset);
-
-		$this->output->appendOutput($html);
-		$this->output->display();
+		header('Content-Type:'.$this->contentType.';charset='.$this->charset);
+		
+		echo $html;
 	}
 
 

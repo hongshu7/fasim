@@ -6,6 +6,7 @@
 
 namespace Fasim\Db;
 
+use Fasim\Core\Application;
 use Fasim\Core\Exception;
 
 /**
@@ -27,7 +28,7 @@ class Mysql implements IDB {
 			$this->_config = $this->parseDsn($this->_config);
 		}*/ // parse dsn at factory class
 
-		$this->_debug = fasim_app()->getConfig()->item('debug');
+		$this->_debug = Application::getInstance()->getConfig()->item('debug');
 
 		$config = $this->_config;
 

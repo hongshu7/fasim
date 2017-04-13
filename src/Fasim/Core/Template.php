@@ -5,13 +5,9 @@
  */
 namespace Fasim\Core;
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
-}
 
-class Template{
+class Template {
 	private $controller;
-
 	private $tpl_root_dir;
 	private $cache_dir;
 	private $tplfile;
@@ -125,7 +121,6 @@ class Template{
 		$template = preg_replace("/\{\/for\}/is", "<?php } ?>", $template);
 		$template = preg_replace("/$this->const_regexp/", "<?php echo \\1?>", $template);
 		
-		$header = "<?php if(!defined('IN_FASIM')) exit('Access Denied');?>\r\n";
 		$header = "<?php \$this->langitems = ".var_export($this->langitems, true)."; ?>\r\n";
 		$template = $header.$template;
 

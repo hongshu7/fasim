@@ -5,10 +5,6 @@
  */
  namespace Fasim\Core;
 
-if (!defined('IN_FASIM')) {
-	exit('Access denied.');
-}
-
 /**
  * SLConfig 系统配置类
  */
@@ -54,7 +50,6 @@ class Config {
 		//读取主配置文件
 		$this->load();
 		
-		log_message('debug', "Config Class Initialized");
 		
 		//如果没有设置base_url,则自动获取base_url
 		if (!isset($this->config['base_url']) || $this->config['base_url'] == '') {
@@ -122,7 +117,6 @@ class Config {
 			unset($config);
 		
 			$loaded = TRUE;
-			log_message('debug', 'Config file loaded: ' . $file_path);
 		}
 		
 		if ($loaded === FALSE) {
