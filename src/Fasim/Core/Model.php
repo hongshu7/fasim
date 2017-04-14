@@ -97,7 +97,13 @@ class Model {
 					case 'timestamp':
 						if ($v['default'] == '$now') {
 							$value = time();
+						} else {
+							$value = intval($value);
 						}
+						break;
+					case '[]':
+					case '{}':
+						$value = array();
 						break;
 				}
 				$this->data[$k] = $value;
@@ -123,21 +129,28 @@ class Model {
 		}
 		$result = array();
 		foreach ($this->data as $k => $v) {
-			
 			if ($filter == null || in_array($k, $filter)) {
-				$result[$k] = $this->getValue($k);
+				$result[$k] = $this->$k;
 			}
 		}
 		return $result;
 	}
 
 	public function __get($key) {
-		return $this->getValue($key);
+		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
+		if (!isset($this->data[$key])) {
+			return null;
+		}
+		$value = $this->data[$key];
+		return $this->getValue($type, $value);
 	}
 
 	public function __set($key, $value) {
 		//按setValue逻辑，如果格式正确，值是不可能为null的
-		$v = $this->setValue($key, $value);
+		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
+		
+		$v = $this->setValue($type, $value);
+		//exit($type .':'. $v);
 		if ($v !== null && $this->data[$key] !== $v) {
 			$this->data[$key] = $v;
 			//新建model及主键不存
@@ -155,38 +168,61 @@ class Model {
 	// 不做转值
 	public function setData($key, $value) {
 		//检查sc
-		if (!isset($this->schema[$key])) {
-			return;
-		}
+		// if (!isset($this->schema[$key])) {
+		// 	return;
+		// }
 		$this->data[$key] = $value;
 	}
 
-	public function getValue($key) {
-		//检查sc
-		if (!isset($this->schema[$key])) {
-			return null;
-		}
-		if (!isset($this->data[$key])) {
-			return null;
-		}
-		$value = $this->data[$key];
-		if ($this->schema[$key]['type'] == 'objectid') {
-			if (is_object($value)) {
-				$value = $value . '';
+	private function getValue($type, $value) {
+		//数组
+		if (strlen($type) > 2 && substr($type, -2, 2) == '[]') {
+			$result = [];
+			if (!is_array($value)) {
+				return $result;
 			}
-		} else if ($this->schema[$key]['type'] == 'int' || $this->schema[$key]['type'] == 'timestamp') {
-			$value = intval($value);
+			$type = substr($type, 0, -2);
+			//exit($type);
+			foreach ($value as $v) {
+				$result[] = $this->getValue($type, $v);
+			}
+			return $result;
+		}
+		switch ($type) {
+			case 'objectid':
+				if (is_object($value)) {
+					$value = $value . '';
+				}
+				break;
+			case 'int':
+			case 'timestamp':
+				$value = intval($value);
+				break;
+			case 'float':
+				$value = floatval($value);
+				break;
+			case 'double':
+				$value = doubleval($value);
+				break;
 		}
 		return $value;
 	}
 
-	public function setValue($key, $value) {
-		//检查sc
-		if (!isset($this->schema[$key])) {
-			//echo 'unkown key: '. $key;
-			return null;
+	private function setValue($type, $value) {
+		//数组
+		if (strlen($type) > 2 && substr($type, -2, 2) == '[]') {
+			$result = [];
+			if (!is_array($value)) {
+				return $result;
+			}
+			$type = substr($type, 0, -2);
+			foreach ($value as $v) {
+				$result[] = $this->setValue($type, $v);
+			}
+			return $result;
 		}
-		$type = $this->schema[$key]['type'];
+
+		//特殊
 		if (is_array($value) && count($value) > 0 && substr((string)array_keys($value)[0], 0, 1) == '$') {
 			//判断是否 是大于、小于这种
 			$result = [];
@@ -198,19 +234,21 @@ class Model {
 				if ($k == '$in') {
 					$nv = [];
 					foreach ($v as $cv) {
-						$nv[] = $this->setValue($key, $cv);
+						$nv[] = $this->setValue($type, $cv);
 					}
 					$result[$k] = $nv;
 				} else {
-					$result[$k] = $this->setValue($key, $v);
+					$result[$k] = $this->setValue($type, $v);
 				}
 				
 			}
 			return $result;
 		}
+
 		switch ($type) {
 			case 'objectid':
-				if (is_string($value) && $value != '') {
+				if (is_string($value) && strlen($value) == 24) {
+					//objectid是固定24位的
 					$value = new \MongoDB\BSON\ObjectID($value);
 				} else if (!($value instanceof \MongoDB\BSON\ObjectID)) {
 					return null;
@@ -241,7 +279,6 @@ class Model {
 				}
 				break;
 			default:
-				$value = null;
 				break;
 		}
 		return $value;

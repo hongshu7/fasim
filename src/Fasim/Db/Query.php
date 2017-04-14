@@ -178,7 +178,7 @@ class Query {
 			//值转换
 			$m = new $this->modelClass();
 			foreach ((array)$data as $k => $v) {
-				$data[$k] = $m->setValue($k, $v);
+				$data[$k] = $m->$k = $v;
 			}
 			//print_r($data);
 			$this->data['where'] = array_merge($this->data['where'], $data);
