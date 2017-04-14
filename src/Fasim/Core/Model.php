@@ -284,6 +284,11 @@ class Model {
 		return $value;
 	}
 
+	public function getSchemaValue($key, $value) {
+		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
+		return $this->setValue($type, $value);
+	}
+
 	//events
 	public function onAdd() {
 		//do nothing
