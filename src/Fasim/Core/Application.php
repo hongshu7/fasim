@@ -219,7 +219,7 @@ class Application {
 			$this->eventDispatcher->dispatchEvent(new \Fasim\Event\ExceptionEvent(\Fasim\Event\Event::$EXCEPTION, $exception));
 
 			$view = $this->currentController->getView();
-			$view->setTemplateRootDir(FS_PATH . DIRECTORY_SEPARATOR . 'view');
+			$view->setTemplateRootDir(FS_PATH . 'View');
 
 			$debug = $this->config->item('debug') === true;
 			$traceString = $exception->getTraceAsString();
@@ -233,7 +233,7 @@ class Application {
 			$view->assign('debug', $debug);
 	
 			
-			if (file_exists(FS_PATH . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR . 'error' . $exception->getCode() . '.html')) {
+			if (file_exists(FS_PATH . 'View' . DIRECTORY_SEPARATOR . 'error' . $exception->getCode() . '.html')) {
 				$view->display('error' . $exception->getCode() . '.html');
 			} else {
 				$view->display('error500.html');

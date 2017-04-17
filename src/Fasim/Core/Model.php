@@ -351,6 +351,15 @@ class Model {
 		return $m->fromArray($source);
 	}
 
+	public static function modelsFromArray($sourceArray) {
+		$resultArray = new ModelArray();
+		foreach ($sourceArray as $item) {
+			$m = new static();
+			$resultArray[] = $m->fromArray($item);
+		}
+		return $resultArray;
+	}
+
 	public static function modelsToArray($objList, $filter='') {
 		$arrays = [];
 		foreach ($objList as $obj) {
