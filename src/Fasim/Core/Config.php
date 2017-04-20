@@ -3,7 +3,7 @@
  * @copyright Copyright(c) 2012 Fasim
  * @author Kevin Lai<lhs168@gmail.com>
  */
- namespace Fasim\Core;
+namespace Fasim\Core;
 
 /**
  * SLConfig 系统配置类
@@ -92,15 +92,19 @@ class Config {
 			//没有加载，则开始加载
 			if (file_exists($file_path)) {
 				$found = TRUE;
+				try {
+					$config = include ($file_path);
+				} catch(\Exception $exp) {
+					$config = [];
+				}
 			}
-
-			$config = @include ($file_path);
-		
-			if (!isset($config) || !is_array($config)) {
+			
+			
+			if (!$found || !isset($config) || !is_array($config)) {
 				if ($fail_gracefully === TRUE) {
 					return FALSE;
 				}
-				show_error('Your ' . $file_path . ' file does not appear to contain a valid configuration array.');
+				throw new Exception('Your ' . $file_path . ' file does not appear to contain a valid configuration array.');
 			}
 			
 			if ($use_sections === TRUE) {
@@ -123,7 +127,7 @@ class Config {
 			if ($fail_gracefully === TRUE) {
 				return FALSE;
 			}
-			show_error('The configuration file ' . $file . '.php' . ' does not exist.');
+			throw new Exception('The configuration file ' . $file . '.php' . ' does not exist.');
 		}
 		
 		return TRUE;

@@ -34,8 +34,9 @@ if (!defined('APP_VIEW_PATH')) {
 	define('APP_VIEW_PATH', APP_PATH . 'views'. DIRECTORY_SEPARATOR);
 }
 
-require_once  APP_CONFIG_PATH . 'constants.php';
-
+if (file_exists(APP_CONFIG_PATH . 'constants.php')) {
+	require_once  APP_CONFIG_PATH . 'constants.php';
+}
 
 /**
  * SLApplication 创建应用的基本类
