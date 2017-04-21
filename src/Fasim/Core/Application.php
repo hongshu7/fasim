@@ -118,11 +118,13 @@ class Application {
 			];
 			$childDir = $components[1];
 			if (isset($childDirs[$childDir])) {
-				$childPath = strtolower(implode('/', array_slice($components, 2, -1)));
+				$childPath = strtolower(implode(DIRECTORY_SEPARATOR, array_slice($components, 2, -1)));
+				if ($childPath) {
+					$childPath .= DIRECTORY_SEPARATOR;
+				}
 				$className = array_slice($components, -1)[0];
 				$path = $childDirs[$childDir] . $childPath . $className . '.php';
 			}
-		
 			if ($path != '') {
 				if (file_exists($path)) {
 					require_once $path;
