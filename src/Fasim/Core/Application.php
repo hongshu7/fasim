@@ -264,7 +264,8 @@ class Application {
 		//路由
 		$this->config->load('router', true);
 		$routers = $this->config->sections('router');
-		$this->router = new Router($routers);
+		$modules = $this->config->item('modules');
+		$this->router = new Router($routers, $modules);
 		//reset $_GET
 		$_GET = $this->router->getQueryArray();
 		

@@ -12,15 +12,19 @@ namespace Fasim\Core;
  */
 class Router {
 	private $routers = '';
+	private $modules = array();
 	private $uriPath = '';
 	private $queryArray = array();
 
+	private $matchModule = '';
 	private $matchController = '';
 	private $matchAction = '';
 	
-	public function __construct($routers) {
+	public function __construct($routers, $modules=null) {
+		if (is_array($modules)) {
+			$this->modules = $modules;
+		}
 		$this->init();
-
 		$this->setRouters($routers);
 	}
 	
@@ -30,6 +34,10 @@ class Router {
 	
 	public function getQueryArray() {
 		return $this->queryArray;
+	}
+
+	public function getMatchModule() {
+		return $this->matchModule;
 	}
 
 	public function getMatchController() {
@@ -120,9 +128,17 @@ class Router {
 			if (substr($ca, -1) == '/') {
 				$ca = substr($ca, 0, -1);
 			}
-			list($c, $a) = explode('/', $ca);
+
+			$p = explode('/', $ca);
+			if (count($p) == 2) {
+				array_splice($p, 0, 0, '');
+			}
+
+			list($m, $c, $a) = $p;
+
 			$this->routers[] = array(
 				'uri' => $uri,
+				'module' => $m,
 				'controller' => $c,
 				'action' => $a,
 				'query' => $q
@@ -139,6 +155,7 @@ class Router {
 			foreach($this->routers as $router) {
 				$matchUri = $router['uri'];
 				if ($matchUri == $uri || $matchUri == $uri.'/' || $this->checkMatchRouterEvent($matchUri, $uri) || $this->checkMatchRouterEvent($matchUri, $uri.'/')) {
+					$this->matchModule = $router['module'];
 					$this->matchController = $router['controller'];
 					$this->matchAction = $router['action'];
 					//query
@@ -149,9 +166,23 @@ class Router {
 			}
 		}
 		if (!$matched) {
-			list($temp, $this->matchController, $this->matchAction) = explode('/', $uri);
+			$components = explode('/', $uri);
+			array_shift($components);
+			if (count($components) > 0) {
+				$component = array_shift($components);
+				if (in_array($component, $this->modules)) {
+					$this->matchModule = $component;
+					if (count($components) > 0) {
+						$this->matchController = array_shift($components);
+					}
+				} else {
+					$this->matchController = $component;
+				}
+			}
+			if (count($components) > 0) {
+				$this->matchAction = array_shift($components);
+			}
 		}
-
 
 		if ($this->matchController == '') {
 			$this->matchController = 'main';
