@@ -109,15 +109,19 @@ class Application {
 	public function autoloader($class) {
 		$components = explode('\\', $class);
 		
-		if ($components[0] == 'App') {
+		if (count($components) > 2 && $components[0] == 'App') {
 			$path = '';
-			if ($components[1] == 'Controller') {
-				$path = APP_CONTROLLER_PATH . $components[2] . '.php';
-			} else if ($components[1] == 'Model') {
-				$path = APP_MODEL_PATH . $components[2] . '.php';
-			} else if ($components[1] == 'Library') {
-				$path = APP_LIBRARY_PATH . $components[2] . '.php';
-			} 
+			$childDirs = [
+				'Controller' => APP_CONTROLLER_PATH,
+				'Model' => APP_MODEL_PATH,
+				'Library' => APP_LIBRARY_PATH,
+			];
+			$childDir = $components[1];
+			if (isset($childDirs[$childDir])) {
+				$childPath = strtolower(implode('/', array_slice($components, 2, -1)));
+				$className = array_slice($components, -1)[0];
+				$path = $childDirs[$childDir] . $childPath . $className . '.php';
+			}
 		
 			if ($path != '') {
 				if (file_exists($path)) {
