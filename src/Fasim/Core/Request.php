@@ -19,6 +19,12 @@ class Request {
 	 */
 	protected $referer = FALSE;
 	/**
+	 * client ip address
+	 *
+	 * @var string
+	 */
+	protected $ipAddress = FALSE;
+	/**
 	 * Constructor
 	 *
 	 * Sets whether to globally enable the XSS processing
@@ -106,6 +112,50 @@ class Request {
 		$this->referer = (!isset($_SERVER['HTTP_REFERER'])) ? FALSE : $_SERVER['HTTP_REFERER'];
 		
 		return $this->referer;
+	}
+
+	/**
+	 * Fetch the IP Address
+	 *
+	 * @access public
+	 * @return string
+	 */
+	function ipAddress() {
+		if ($this->ipAddress !== FALSE) {
+			return $this->ipAddress;
+		}
+		
+		$proxyIps = Application::getInstance()->getConfig()->item('proxy_ips');
+		if ($proxyIps != '' && $_SERVER['HTTP_X_FORWARDED_FOR'] && $_SERVER['REMOTE_ADDR']) {
+			$proxies = preg_split('/[\s,]/', $proxyIps, -1, PREG_SPLIT_NO_EMPTY);
+			$proxies = is_array($proxies) ? $proxies : array($proxies);
+			
+			$this->ipAddress = in_array($_SERVER['REMOTE_ADDR'], $proxies) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
+		} elseif ($_SERVER['REMOTE_ADDR'] && $_SERVER['HTTP_CLIENT_IP']) {
+			$this->ipAddress = $_SERVER['HTTP_CLIENT_IP'];
+		} elseif ($_SERVER['REMOTE_ADDR']) {
+			$this->ipAddress = $_SERVER['REMOTE_ADDR'];
+		} elseif ($_SERVER['HTTP_CLIENT_IP']) {
+			$this->ipAddress = $_SERVER['HTTP_CLIENT_IP'];
+		} elseif ($_SERVER['HTTP_X_FORWARDED_FOR']) {
+			$this->ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+		}
+		
+		if ($this->ipAddress === FALSE) {
+			$this->ipAddress = '0.0.0.0';
+			return $this->ipAddress;
+		}
+		
+		if (strpos($this->ipAddress, ',') !== FALSE) {
+			$x = explode(',', $this->ipAddress);
+			$this->ipAddress = trim(end($x));
+		}
+		
+		// if (!$this->_validIp($this->ipAddress)) {
+		// 	$this->ipAddress = '0.0.0.0';
+		// }
+		
+		return $this->ipAddress;
 	}
 	
 

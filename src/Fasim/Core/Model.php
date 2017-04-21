@@ -37,7 +37,14 @@ class Model {
 		//echo $this->isNew ? '$this->isNew': '...';
 		if ($this->isNew) {
 			$this->fillData();
-			self::db($this)->insert($this->tableName, $this->data, true);
+			//filter data
+			$data = [];
+			foreach ($this->data as $key => $item) {
+				if (isset($this->schema[$key])) {
+					$data[$key] = $item;
+				}
+			}
+			self::db($this)->insert($this->tableName, $data, true);
 			$this->isNew = false;
 			$this->onAdd();
 		} else {
@@ -48,6 +55,7 @@ class Model {
 			$updates = [];
 			foreach ($this->needUpdates as $key) {
 				$updates[$key] = $this->data[$key]; //??? $this->$key
+				
 			}
 			$this->needUpdates = []; //置空
 
@@ -154,7 +162,7 @@ class Model {
 		if ($v !== null && $this->data[$key] !== $v) {
 			$this->data[$key] = $v;
 			//新建model及主键不存
-			if (!$this->isNew && (is_array($this->primaryKey) && !in_array($key, $this->primaryKey)) || $key != $this->primaryKey) {
+			if (!$this->isNew && isset($this->schema[$key]) && (is_array($this->primaryKey) ? !in_array($key, $this->primaryKey) : $key != $this->primaryKey)) {
 				$this->needUpdates[] = $key;
 			}
 		}
