@@ -7,10 +7,10 @@ namespace Fasim\Core;
 
 
 /**
- * @class Input
+ * @class Request
  * 输入类
  */
-class Input {
+class Request {
 	
 	
 	/**
@@ -87,60 +87,6 @@ class Input {
 	}
 	
 
-	/**
-	 * Set cookie
-	 *
-	 * Accepts six parameter, or you can submit an associative
-	 * array in the first parameter containing all the values.
-	 *
-	 * @access public
-	 * @param
-	 *        	mixed
-	 * @param
-	 *        	string	the value of the cookie
-	 * @param
-	 *        	string	the number of seconds until expiration
-	 * @param
-	 *        	string	the cookie domain. Usually: .yourdomain.com
-	 * @param
-	 *        	string	the cookie path
-	 * @param
-	 *        	string	the cookie prefix
-	 * @param
-	 *        	bool	true makes the cookie secure
-	 * @return void
-	 */
-	function setCookie($name = '', $value = '', $expire = '', $domain = '', $path = '/', $prefix = '', $secure = FALSE) {
-		if (is_array($name)) {
-			// always leave 'name' in last place, as the loop will break
-			// otherwise, due to $$item
-			foreach (array('value', 'expire', 'domain', 'path', 'prefix', 'secure', 'name') as $item) {
-				if (isset($name[$item])) {
-					$$item = $name[$item];
-				}
-			}
-		}
-		$cfg = Application::getInstance()->getConfig()->item('cookie');
-		if ($prefix == '' and $cfg['prefix'] != '') {
-			$prefix = $cfg['prefix'];
-		}
-		if ($domain == '' and $cfg['domain'] != '') {
-			$domain = $cfg['domain'];
-		}
-		if ($path == '/' and $cfg['path'] != '/') {
-			$path = $cfg['path'];
-		}
-		if ($secure == FALSE and $cfg['secure'] != FALSE) {
-			$secure = $cfg['secure'];
-		}
-		
-		if (!is_numeric($expire)) {
-			$expire = time() - 86400;
-		} else {
-			$expire = ($expire > 0) ? time() + $expire : 0;
-		}
-		
-		setcookie($prefix . $name, $value, $expire, $path, $domain, $secure);
-	}
+	
 
 }

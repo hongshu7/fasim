@@ -39,14 +39,14 @@ class Controller {
 	public $config;
 	/**
 	 * 系统输入类
-	 * @var Input
-	 */
-	public $input;
-	/**
-	 * 系统输入类
-	 * @var Request (input别名，即将废弃)
+	 * @var Request
 	 */
 	public $request;
+	/**
+	 * 系统输出类
+	 * @var Response
+	 */
+	public $response;
 	/**
 	 * Session类
 	 * @var Session
@@ -71,8 +71,8 @@ class Controller {
 		//初始化系统配置
 		$this->router = $this->app->getRouter();
 
-		$this->input = new Input();
-		$this->request = $this->input;
+		$this->request = new Request();
+		$this->response = new Response();
 
 		$this->session = \Fasim\Session\SessionFactory::getSession();
 
@@ -179,10 +179,12 @@ class Controller {
 	 * 显示输出
 	 */
 	public function display($html) {
-		
-		header('Content-Type:'.$this->contentType.';charset='.$this->charset);
-		
-		echo $html;
+
+		$this->response->setContentType($this->contentType, $this->charset);
+		$this->response->appendOutput($html);
+		$this->response->display();
+
+
 	}
 
 
