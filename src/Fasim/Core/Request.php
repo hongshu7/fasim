@@ -12,7 +12,12 @@ namespace Fasim\Core;
  */
 class Request {
 	
-	
+	/**
+	 * http referer
+	 *
+	 * @var string
+	 */
+	protected $referer = FALSE;
 	/**
 	 * Constructor
 	 *
@@ -24,7 +29,9 @@ class Request {
 	}
 	
 	
-	// --------------------------------------------------------------------
+	function isPost() {
+		return $_POST ? true : false;
+	}
 	
 	/**
 	 * Fetch an item from either the GET array or the POST
@@ -86,7 +93,20 @@ class Request {
 		return $_COOKIE[$prefix.$name];
 	}
 	
-
+	/**
+	 * User referer
+	 *
+	 * @access public
+	 * @return string
+	 */
+	function referer() {
+		if ($this->referer !== FALSE) {
+			return $this->referer;
+		}
+		$this->referer = (!isset($_SERVER['HTTP_REFERER'])) ? FALSE : $_SERVER['HTTP_REFERER'];
+		
+		return $this->referer;
+	}
 	
 
 }
