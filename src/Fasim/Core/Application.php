@@ -209,7 +209,7 @@ class Application {
 			//触发uri路由
 			$this->router->dispatch();
 
-			$this->runControllerAction($this->router->getMatchController(), $this->router->getMatchAction());
+			$this->runControllerAction();
 
 			//结束
 			$this->finish(0);
@@ -282,11 +282,15 @@ class Application {
 	/**
 	 * 执行action方法
 	 */
-	public function runControllerAction($controller, $action) {
+	public function runControllerAction() {
+		$module = $this->router->getMatchModule();
+		$controller = $this->router->getMatchController();
+		$action = $this->router->getMatchAction();
 
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$CONTROLLER_START));
 
-		$controllerClassName = '\\App\\Controller\\'.ucfirst($controller).'Controller';
+		$modulePath = $module ? ucfirst($module) . '\\' : '';
+		$controllerClassName = '\\App\\Controller\\'.$modulePath.ucfirst($controller).'Controller';
 		$controllerInst = null;
 		try {
 			$controllerInst = new $controllerClassName($this, $controller, $queryString);
@@ -361,7 +365,8 @@ class Application {
 		//输出缓冲区
 		flush();
 		exit($status);
+
+		//todo: here response display
 	}
 
 }
-?>
