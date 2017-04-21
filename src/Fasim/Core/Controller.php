@@ -39,7 +39,12 @@ class Controller {
 	public $config;
 	/**
 	 * 系统输入类
-	 * @var Request
+	 * @var Input
+	 */
+	public $input;
+	/**
+	 * 系统输入类
+	 * @var Request (input别名，即将废弃)
 	 */
 	public $request;
 	/**
@@ -66,7 +71,8 @@ class Controller {
 		//初始化系统配置
 		$this->router = $this->app->getRouter();
 
-		$this->request = new Request();
+		$this->input = new Input();
+		$this->request = $this->input;
 
 		$this->session = \Fasim\Session\SessionFactory::getSession();
 
