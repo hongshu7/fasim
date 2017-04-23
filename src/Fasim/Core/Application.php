@@ -293,6 +293,7 @@ class Application {
 
 		$modulePath = $module ? ucfirst($module) . '\\' : '';
 		$controllerClassName = '\\App\\Controller\\'.$modulePath.ucfirst($controller).'Controller';
+		
 		$controllerInst = null;
 		try {
 			$controllerInst = new $controllerClassName($this, $controller, $queryString);

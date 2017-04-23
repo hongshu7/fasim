@@ -60,6 +60,7 @@ class ModelArray implements \IteratorAggregate, \ArrayAccess, \Serializable {
 		return $array;
 	}
 
+
 }
 
 ?>

@@ -5,6 +5,10 @@
  */
 
 namespace Fasim\Cache;
+
+use Fasim\Core\Model;
+use Fasim\Core\ModelArray;
+
 /**
  * 缓存类
  */
@@ -38,7 +42,28 @@ class Cache  {
 	 * @return bool true:成功;false:失败;
 	 */
 	public function set($key, $data, $expire = 0) {
-		//todo: ...
+		if ($data instanceof ModelArray) {
+			$modelArray = explode('\\', get_class($data[0]));
+			$modelName = count($data) == 0 ? '': end($modelArray);
+			$data = [
+				'__fsm' => [
+					'm' => $modelName,
+					'a' => 1
+				],
+				'data' => $data->toArray()
+			];
+		} else if ($data instanceof Model) {
+			$modelArray = explode('\\', get_class($data));
+			$modelName = count($data) == 0 ? '': end($modelArray);
+			$data = [
+				'__fsm' => [
+					'm' => $modelName,
+					'a' => 0
+				],
+				'data' => $data->toArray()
+			];
+		}
+		print_r($data);
 		CacheFactory::getCache()->set($key, $data, $expire);
 	}
 
@@ -51,7 +76,21 @@ class Cache  {
 	 */
 	public function get($key) {
 		$data = CacheFactory::getCache()->get($key);
-		//todo: ...
+		if ($data && isset($data['__fsm'])) {
+			$modelName = empty($data['__fsm']['m']) ? '' : 'App\\Model\\'.ucfirst($data['__fsm']['m']);
+			$isArray = intval($data['__fsm']['a']);
+			if ($isArray == 1) {
+				$ma = new ModelArray();
+				foreach ($data['data'] as $item) {
+					$model = new $modelName();
+					$ma[] = $model;
+				}
+				$data = $ma;
+			} else {
+				$model = new $modelName();
+				$data = $model->fromArray($data['data']);
+			}
+		}
 		return $data;
 	}
 

@@ -368,6 +368,7 @@ class Model {
 		return $resultArray;
 	}
 
+	//准备废弃
 	public static function modelsToArray($objList, $filter='') {
 		$arrays = [];
 		foreach ($objList as $obj) {
