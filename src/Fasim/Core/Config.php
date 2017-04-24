@@ -61,7 +61,7 @@ class Config {
 				$base_url = 'http://localhost/';
 			}
 			
-			$this->setItem('base_url', $base_url);
+			$this->_setItem('base_url', $base_url);
 		}
 	}
 	
@@ -143,8 +143,21 @@ class Config {
 	 * @param bool
 	 * @return string
 	 */
+	public function has($item) {
+		return $this->get($item, '@#$[not set]%^&') !== '@#$[not set]%^&';
+	}
+
+		/**
+	 * 判断是否有某个配置（兼容旧接口）
+	 *
+	 *
+	 * @access public
+	 * @param string	置名，多级数组可以用"."分隔，如"db.name"，配置组可以用":"，如"data:db.name"
+	 * @param bool
+	 * @return string
+	 */
 	public function hasItem($item) {
-		return $this->item($item, '@#$[not set]%^&') !== '@#$[not set]%^&';
+		return $this->has($item);
 	}
 	
 	// --------------------------------------------------------------------
@@ -159,7 +172,7 @@ class Config {
 	 * @param mixed     如果没有配置的默认值
 	 * @return string
 	 */
-	public function item($item, $default='') {
+	public function get($item, $default='') {
 		$index = '';
 		if (strpos($item, ':') !== false) {
 			list($index, $item) = explode(':', $item, 2);
@@ -184,6 +197,20 @@ class Config {
 		return $pref;
 	}
 
+	/**
+	 * 得到配置文件的一个值（兼容旧接口）
+	 *
+	 *
+	 * @access public
+	 * @param string	配置名，多级数组可以用"."分隔，如"db.name"，配置组可以用":"，如"data:db.name"
+	 * @param string	配置组名
+	 * @param mixed     如果没有配置的默认值
+	 * @return string
+	 */
+	public function item($item, $default='') {
+		return $this->get($item, $default);
+	}
+
 	// -------------------------------------------------------------
 
 	/**
@@ -191,9 +218,7 @@ class Config {
 	 *
 	 *
 	 * @access public
-	 * @param string	配置名，多级数组可以用"."分隔，如"db.name"，配置组可以用":"，如"data:db.name"
 	 * @param string	配置组名
-	 * @param mixed     如果没有配置的默认值
 	 * @return string
 	 */
 	public function sections($file) {
@@ -212,7 +237,7 @@ class Config {
 	 * @return string
 	 */
 	public function baseUrl($uri = '') {
-		return $this->slashItem('base_url') . ltrim($this->_uriString($uri), '/');
+		return $this->_slashItem('base_url') . ltrim($this->_uriString($uri), '/');
 	}
 	
 	// --------------------------------------------------------------------
@@ -225,7 +250,7 @@ class Config {
 	 */
 	public function systemUrl() {
 		$x = explode("/", preg_replace("|/*(.+?)/*$|", "\\1", APP_PATH));
-		return $this->slashItem('base_url') . end($x) . '/';
+		return $this->_slashItem('base_url') . end($x) . '/';
 	}
 	
 	// --------------------------------------------------------------------
@@ -238,7 +263,7 @@ class Config {
 	 * @param string	the config section name
 	 * @return string
 	 */
-	private function slashItem($item, $default='') {
+	private function _slashItem($item, $default='') {
 		$pref = $this->item($item, $default);
 		if ($pref === false) $pref = '';
 		return rtrim($pref, '/') . '/';
@@ -288,7 +313,7 @@ class Config {
 	 *        	string	the config item value
 	 * @return void
 	 */
-	private function setItem($item, $value) {
+	private function _setItem($item, $value) {
 		$this->config[$item] = $value;
 	}
 	
@@ -309,9 +334,10 @@ class Config {
 	private function _assignToconfig($items = array()) {
 		if (is_array($items)) {
 			foreach ($items as $key => $val) {
-				$this->setItem($key, $val);
+				$this->_setItem($key, $val);
 			}
 		}
 	}
+
 }
 ?>

@@ -6,6 +6,7 @@
 namespace Fasim\Session;
 
 use Fasim\Core\Application;
+use Fasim\Facades\Config;
 /**
  * Session工厂类
  */
@@ -23,12 +24,12 @@ class SessionFactory {
 		}
 		
 		// 获取数据库配置信息
-		if (!Application::getInstance()->getConfig()->hasItem('session')) {
+		if (!Config::has('session')) {
 			throw new \Fasim\Core\Exception('Can not find session info in config.php', 1000);
 			exit();
 		}
 		
-		$config = Application::getInstance()->getConfig()->item('session');
+		$config = Config::get('session');
 
 		$sessionObj = null;
 		switch ($config['type']) {

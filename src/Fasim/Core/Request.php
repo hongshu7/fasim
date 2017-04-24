@@ -5,6 +5,7 @@
  */
 namespace Fasim\Core;
 
+use Fasim\Facades\Config as Cfg;
 
 /**
  * @class Request
@@ -92,7 +93,7 @@ class Request {
 	 * @return string
 	 */
 	function cookie($name = '', $xss_clean = FALSE, $prefix='') {
-		$cfg = Application::getInstance()->getConfig()->item('cookie');
+		$cfg = Cfg::get('cookie');
 		if ($prefix == '' and $cfg['prefix'] != '') {
 			$prefix = $cfg['prefix'];
 		}
@@ -125,7 +126,7 @@ class Request {
 			return $this->ipAddress;
 		}
 		
-		$proxyIps = Application::getInstance()->getConfig()->item('proxy_ips');
+		$proxyIps = Cfg::get('proxy_ips');
 		if ($proxyIps != '' && $_SERVER['HTTP_X_FORWARDED_FOR'] && $_SERVER['REMOTE_ADDR']) {
 			$proxies = preg_split('/[\s,]/', $proxyIps, -1, PREG_SPLIT_NO_EMPTY);
 			$proxies = is_array($proxies) ? $proxies : array($proxies);

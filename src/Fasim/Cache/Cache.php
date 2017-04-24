@@ -63,7 +63,7 @@ class Cache  {
 				'data' => $data->toArray()
 			];
 		}
-		print_r($data);
+		//print_r($data);
 		CacheFactory::getCache()->set($key, $data, $expire);
 	}
 
@@ -149,4 +149,5 @@ class Cache  {
 	public function flush() {
 		CacheFactory::getCache()->flush();
 	}
+
 }

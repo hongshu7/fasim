@@ -9,6 +9,7 @@ namespace Fasim\Db;
 use Fasim\Core\Application;
 use Fasim\Core\Exception;
 use Fasim\Library\DbDsn;
+use Fasim\Facades\Config;
 
 /**
  * 数据库工厂
@@ -30,7 +31,7 @@ class DBFactory {
 		$dbCfgKey = '';
 		if ($tableName == '') $dbCfgKey = '__default__';
 
-		$dbinfo = Application::getInstance()->getConfig()->item('database');
+		$dbinfo = Config::get('database');
 		if ($dbinfo === null) {
 			throw new Exception('can not find database info in config.php', 1000);
 		}

@@ -5,7 +5,7 @@
  */
 namespace Fasim\Core;
 
-
+use Fasim\Facades\Config as Cfg;
 /**
  * @class Response
  * 输出类
@@ -63,7 +63,7 @@ class Response {
 				}
 			}
 		}
-		$cfg = Application::getInstance()->getConfig()->item('cookie');
+		$cfg = Cfg::get('cookie');
 		if ($prefix == '' and $cfg['prefix'] != '') {
 			$prefix = $cfg['prefix'];
 		}

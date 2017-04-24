@@ -8,6 +8,8 @@ namespace Fasim\Db;
 use Fasim\Core\Application;
 use Fasim\Core\Exception;
 use Fasim\Core\ModelArray;
+use Fasim\Facades\Config;
+
 /**
  * DB 系统统一查询类
  */
@@ -22,7 +24,7 @@ class Query {
 	 *        	表名
 	 */
 	public function __construct($modelClass) {
-		$this->tablePrefix = Application::getInstance()->getConfig()->item('database.table_prefix');
+		$this->tablePrefix = Config::get('database.table_prefix');
 		$this->modelClass = '\\' . $modelClass;
 	}
 

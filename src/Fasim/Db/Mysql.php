@@ -8,6 +8,7 @@ namespace Fasim\Db;
 
 use Fasim\Core\Application;
 use Fasim\Core\Exception;
+use Fasim\Facades\Config;
 
 /**
  * MYSQL数据库应用
@@ -28,7 +29,7 @@ class Mysql implements IDB {
 			$this->_config = $this->parseDsn($this->_config);
 		}*/ // parse dsn at factory class
 
-		$this->_debug = Application::getInstance()->getConfig()->item('debug');
+		$this->_debug = Config::get('debug');
 
 		$config = $this->_config;
 

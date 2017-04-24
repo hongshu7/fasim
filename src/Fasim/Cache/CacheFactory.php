@@ -6,6 +6,7 @@
 namespace Fasim\Cache;
 
 use Fasim\Core\Application;
+use Fasim\Facades\Config;
 /**
  * 缓存工厂类
  */
@@ -23,12 +24,12 @@ class CacheFactory {
 		}
 		
 		// 获取数据库配置信息
-		if (!Application::getInstance()->getConfig()->hasItem('cache')) {
+		if (!Config::has('cache')) {
 			throw new \Fasim\Core\Exception('Can not find cache info in config.php', 1000);
 			exit();
 		}
 		
-		$config = Application::getInstance()->getConfig()->item('cache');
+		$config = Config::get('cache');
 
 		$cacheObj = null;
 		switch ($config['type']) {

@@ -38,6 +38,8 @@ if (file_exists(APP_CONFIG_PATH . 'constants.php')) {
 	require_once  APP_CONFIG_PATH . 'constants.php';
 }
 
+use Fasim\Cache\Cache;
+
 /**
  * SLApplication 创建应用的基本类
  */
@@ -49,23 +51,8 @@ class Application {
 	 */
 	public $startTime;
 	
-	/**
-	 * 事件调试器
-	 * @var EventDispatcher
-	 */
+	
 	private $eventDispatcher;
-	
-	/**
-	 * 应用的config类
-	 * @var Config
-	 */
-	private  $config;
-	
-	/**
-	 * 系统路由
-	 * @var Router
-	 */
-	private $router;
 
 	/**
 	 * 当前Controller
@@ -138,29 +125,85 @@ class Application {
 		return false;
 		//include 'classes/' . $class . '.class.php';
 	}
-	
+
 	/**
-	 * 事件调试器
-	 * @var Dispatcher
+	 * 初始化
+	 *
+	 * @return Void
 	 */
-	public function getEventDispatcher() {
-		return $this->eventDispatcher;
+	public function init() {
+		//触发应用开始事件
+		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$APP_START));
+
+		//初始化配置
+		$this->registerFacdes();
+
+		//设置时区
+		$timezone = $this->make('config')->get('timezone', 'Asia/Shanghai');
+		date_default_timezone_set($timezone);
+
+
+		//reset $_GET
+		$_GET = $this->make('router')->getQueryArray();
+		
+		//设置调试模式
+		$debugMode = $this->make('config')->get('debug') === true;
+		$this->setDebugMode($debugMode);
+		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$APP_READY));
+	}
+
+
+	protected function registerFacdes() {
+		$this->singleton('app', function($app) {
+			return $this;
+		});
+		$this->singleton('config', function($app) {
+			return new Config();
+		});
+		$this->singleton('router', function($app) {
+			//路由
+			$config = $this->make('config');
+			$config->load('router', true);
+			$routers = $config->sections('router');
+			$modules = $config->get('modules');
+			return new Router($routers, $modules);
+		});
+		$this->singleton('request', function($app) {
+			return new Request();
+		});
+		$this->singleton('response', function($app) {
+			return new Response();
+		});
+		$this->singleton('cache', function($app) {
+			return new Cache();
+		});
+	}
+
+	private $instances = array();
+	private $singletonInstances = array();
+	private $bindInstances = array();
+	public function singleton($abstract, $instance) {
+		$this->singletonInstances[$abstract] = $instance;
+	}
+
+	public function bind($abstract, $instance) {
+		$this->bindInstances[$abstract] = $instance;
 	}
 	
-	/**
-	 * 应用的config类
-	 * @var Config
-	 */
-	public function getConfig() {
-		return $this->config;
-	}
-	
-	/**
-	 * 系统路由
-	 * @var Router
-	 */
-	public function getRouter() {
-		return $this->router;
+	public function make($abstract, array $parameters = []) {
+		array_unshift($parameters, $this);
+		if (isset($this->instances[$abstract])) {
+			return $this->instances[$abstract];
+		} else if (isset($this->singletonInstances[$abstract])) {
+			$func = $this->singletonInstances[$abstract];
+			$this->instances[$abstract] = call_user_func_array($func, $parameters);
+			return $this->instances[$abstract];
+		} else if (isset($this->bindInstances[$abstract])) {
+			$func = $this->bindInstances[$abstract];
+			return call_user_func_array($func, $parameters);
+		} else {
+			return null;
+		}
 	}
 
 
@@ -193,8 +236,7 @@ class Application {
 	public function getCurrentController() {
 		return $this->currentController;
 	}
-	
-	
+
 	
 	/**
 	 * 应用运行的方法
@@ -209,7 +251,7 @@ class Application {
 			$this->init();
 
 			//触发uri路由
-			$this->router->dispatch();
+			$this->make('router')->dispatch();
 
 			$this->runControllerAction();
 
@@ -228,7 +270,7 @@ class Application {
 			$view = $this->currentController->getView();
 			$view->setTemplateRootDir(FS_PATH . 'View');
 
-			$debug = $this->config->item('debug') === true;
+			$debug = $this->make('config')->get('debug') === true;
 			$traceString = $exception->getTraceAsString();
 			$traceString = str_replace("\n", "<br />\n", $traceString);
 			$view->assign('code', $exception->getCode());
@@ -251,43 +293,15 @@ class Application {
 		}
 	}
 
-	/**
-	 * 初始化
-	 *
-	 * @return Void
-	 */
-	public function init() {
-		//触发应用开始事件
-		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$APP_START));
-
-		//初始化配置
-		$this->config = new Config();
-
-		//设置时区
-		$timezone = $this->config->item('timezone', 'Asia/Shanghai');
-		date_default_timezone_set($timezone);
-
-		//路由
-		$this->config->load('router', true);
-		$routers = $this->config->sections('router');
-		$modules = $this->config->item('modules');
-		$this->router = new Router($routers, $modules);
-		//reset $_GET
-		$_GET = $this->router->getQueryArray();
-		
-		//设置调试模式
-		$debugMode = $this->config->item('debug') === true;
-		$this->setDebugMode($debugMode);
-		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$APP_READY));
-	}
+	
 
 	/**
 	 * 执行action方法
 	 */
 	public function runControllerAction() {
-		$module = $this->router->getMatchModule();
-		$controller = $this->router->getMatchController();
-		$action = $this->router->getMatchAction();
+		$module = $this->make('router')->getMatchModule();
+		$controller = $this->make('router')->getMatchController();
+		$action = $this->make('router')->getMatchAction();
 
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$CONTROLLER_START));
 

@@ -67,12 +67,10 @@ class Controller {
 		$this->controllerName = $controllerName;
 		
 		//初始化系统配置
-		$this->config = $this->app->getConfig();
-		//初始化系统配置
-		$this->router = $this->app->getRouter();
+		$this->config = $this->app->make('config');
 
-		$this->request = new Request();
-		$this->response = new Response();
+		$this->request = $this->app->make('request');
+		$this->response = $this->app->make('response');
 
 		$this->session = \Fasim\Session\SessionFactory::getSession();
 
