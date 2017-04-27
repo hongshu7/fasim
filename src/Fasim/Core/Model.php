@@ -98,12 +98,12 @@ class Model {
 				$value = $v['default'];
 				switch ($v['type']) {
 					case 'objectid':
-						if ($v['default'] == 'auto') {
+						if ($value === 'auto') {
 							$value = new \MongoDB\BSON\ObjectID();
 						}
 						break;
 					case 'timestamp':
-						if ($v['default'] == '$now') {
+						if ($value === '$now') {
 							$value = time();
 						} else {
 							$value = intval($value);
