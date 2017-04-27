@@ -18,9 +18,9 @@ class Model {
 	protected $tableName = '';
 	protected $primaryKey = 'id';
 
-	private $isNew = true;
-	private $needUpdates = [];
-	private $data = array();
+	private $_isNew = true;
+	private $_needUpdates = [];
+	private $_data = array();
 
 	public function __construct() {
 	}
@@ -34,35 +34,35 @@ class Model {
 	}
 
 	public function save() {
-		//echo $this->isNew ? '$this->isNew': '...';
-		if ($this->isNew) {
+		//echo $this->_isNew ? '$this->_isNew': '...';
+		if ($this->_isNew) {
 			$this->fillData();
 			//filter data
 			$data = [];
-			foreach ($this->data as $key => $item) {
+			foreach ($this->_data as $key => $item) {
 				if (isset($this->schema[$key])) {
 					$data[$key] = $item;
 				}
 			}
 			self::db($this)->insert($this->tableName, $data, true);
-			$this->isNew = false;
+			$this->_isNew = false;
 			$this->onAdd();
 		} else {
-			if (empty($this->needUpdates)) {
+			if (empty($this->_needUpdates)) {
 				//没有可更新的
 				return;
 			}
 			$updates = [];
-			foreach ($this->needUpdates as $key) {
-				$updates[$key] = $this->data[$key]; //??? $this->$key
+			foreach ($this->_needUpdates as $key) {
+				$updates[$key] = $this->_data[$key]; //??? $this->$key
 				
 			}
-			$this->needUpdates = []; //置空
+			$this->_needUpdates = []; //置空
 
 			$primaryKeys = is_array($this->primaryKey) ? $this->primaryKey : [$this->primaryKey];
 			$where = [];
 			foreach ($primaryKeys as $pk) {
-				$where[$pk] = $this->data[$pk];
+				$where[$pk] = $this->_data[$pk];
 			}
 			self::db($this)->update($this->tableName, $where, $updates);
 			$this->onUpdate();
@@ -74,7 +74,7 @@ class Model {
 		$primaryKeys = is_array($this->primaryKey) ? $this->primaryKey : [$this->primaryKey];
 		$where = [];
 		foreach ($primaryKeys as $pk) {
-			$where[$pk] = $this->data[$pk];
+			$where[$pk] = $this->_data[$pk];
 		}
 		self::db($this)->delete($this->tableName, $where);
 		$this->onDelete();
@@ -86,7 +86,7 @@ class Model {
 		$primaryKeys = is_array($this->primaryKey) ? $this->primaryKey : [$this->primaryKey];
 		$pkValues = [];
 		foreach ($primaryKeys as $pk) {
-			$pkValues[] = $this->data[$pk];
+			$pkValues[] = $this->_data[$pk];
 		}
 		$cacheKey = $this->tableName . '_' . implode('_', $pkValues);
 		self::cache()->delete($cacheKey);
@@ -94,7 +94,7 @@ class Model {
 
 	public function fillData() {
 		foreach ($this->schema as $k => $v) {
-			if (!isset($this->data[$k])) {
+			if (!isset($this->_data[$k])) {
 				$value = $v['default'];
 				switch ($v['type']) {
 					case 'objectid':
@@ -114,14 +114,14 @@ class Model {
 						$value = array();
 						break;
 				}
-				$this->data[$k] = $value;
+				$this->_data[$k] = $value;
 			}
 		}
 	}
 
 	public function fromArray($source) {
 		//todo:check schema
-		$this->data = $source;
+		$this->_data = $source;
 		$this->setNotNew();
 		return $this;
 	}
@@ -136,7 +136,7 @@ class Model {
 			$filter = null;
 		}
 		$result = array();
-		foreach ($this->data as $k => $v) {
+		foreach ($this->_data as $k => $v) {
 			if ($filter == null || in_array($k, $filter)) {
 				$result[$k] = $this->$k;
 			}
@@ -146,10 +146,10 @@ class Model {
 
 	public function __get($key) {
 		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
-		if (!isset($this->data[$key])) {
+		if (!isset($this->_data[$key])) {
 			return null;
 		}
-		$value = $this->data[$key];
+		$value = $this->_data[$key];
 		return $this->getValue($type, $value);
 	}
 
@@ -159,18 +159,18 @@ class Model {
 		
 		$v = $this->setValue($type, $value);
 		//exit($type .':'. $v);
-		if ($v !== null && $this->data[$key] !== $v) {
-			$this->data[$key] = $v;
+		if ($v !== null && $this->_data[$key] !== $v) {
+			$this->_data[$key] = $v;
 			//新建model及主键不存
-			if (!$this->isNew && isset($this->schema[$key]) && (is_array($this->primaryKey) ? !in_array($key, $this->primaryKey) : $key != $this->primaryKey)) {
-				$this->needUpdates[] = $key;
+			if (!$this->_isNew && isset($this->schema[$key]) && (is_array($this->primaryKey) ? !in_array($key, $this->primaryKey) : $key != $this->primaryKey)) {
+				$this->_needUpdates[] = $key;
 			}
 		}
 	}
 
 	// 不是新模型，save执行update
 	public function setNotNew() {
-		$this->isNew = false;
+		$this->_isNew = false;
 	}
 
 	// 不做转值
@@ -179,7 +179,7 @@ class Model {
 		// if (!isset($this->schema[$key])) {
 		// 	return;
 		// }
-		$this->data[$key] = $value;
+		$this->_data[$key] = $value;
 	}
 
 	private function getValue($type, $value) {
