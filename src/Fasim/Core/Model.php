@@ -202,6 +202,9 @@ class Model {
 					$value = $value . '';
 				}
 				break;
+			case 'bool':
+				$value = !!$value;
+				break;
 			case 'int':
 			case 'timestamp':
 				$value = intval($value);
@@ -262,8 +265,10 @@ class Model {
 					return null;
 				}
 				break;
-			case 'int':
 			case 'bool':
+				$value = !!$value;
+				break;
+			case 'int':
 			case 'timestamp':
 				$value = intval($value);
 				break;
