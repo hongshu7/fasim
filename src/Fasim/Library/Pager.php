@@ -7,13 +7,16 @@
 namespace Fasim\Library;
 
 class Pager {
+	const Normal = 1;
+	const Simple = 2;
+	const Bootstrap = 3;
 
 	public $text = '&laquo;,&lsaquo;,&rsaquo;,&raquo;';
 	public $tip = '&laquo;,&lsaquo;,&rsaquo;,&raquo;';
-	public $showExt = true;
 	public $showPage = 10;
 	public $totlePage = 0;
 	public $url = '?page={page}';
+	public $style = self::Normal;
 
 	private $page = 1;
 	private $totalCount = 0;
@@ -57,61 +60,63 @@ class Pager {
 		//分页
 		$texts = explode(',', $this->text);
 		$tips = explode(',', $this->tip);
-		if (count($texts)!=4)  return;
+		if (count($texts) != 4)  return;
+
+		$showExt = true;
+		if ($this->style == self::Simple) {
+			$showExt = false;
+		}
 
 		$html = '';
 		//第一页
-		if (($this->page>intval(($this->showPage + 1)/2) && $this->showPage<$this->totlePage) || ($this->showExt && $this->page != 1)) {
+		if (($this->page > intval(($this->showPage + 1) / 2) && $this->showPage < $this->totlePage) || ($showExt && $this->page != 1)) {
 			$toPage = '1';
 			$html .= "<a href=\"".str_replace('{page}', '1', $this->url)."\" title=\"{$tips[0]}\">{$texts[0]}</a>";
-		}else if ($this->showExt) {
+		} else if ($showExt) {
 			$html .= "<span title=\"{$tips[0]}\">{$texts[0]}</span>";
 		}
 		//上一页
-		if ($this->page>1) {
-			$toPage = $this->page-1;
+		if ($this->page > 1) {
+			$toPage = $this->page - 1;
 			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[1]}\">{$texts[1]}</a>";
-		}else if ($this->showExt) {
+		} else if ($showExt) {
 			$html .= "<span title=\"{$tips[1]}\">{$texts[1]}</span>";
 		}
 		//列页
-		for($p = $s;$p<=$e;$p++) {
+		for($p = $s; $p <= $e; $p++) {
 			$toPage = $p;
 			if ($p == $this->page) {
 				$html .= "<strong>".$p."</strong>";
-			}else{
+			} else {
 				$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\">".$p."</a>";
 			}
 		}
 		//下一页
-		if ($this->page<$this->totlePage) {
+		if ($this->page < $this->totlePage) {
 			$toPage = $this->page + 1;
 			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[2]}\">{$texts[2]}</a>";
-		}else if ($this->showExt) {
+		} else if ($showExt) {
 			$html .= "<span title=\"{$tips[2]}\">{$texts[2]}</span>";
 		}
 		//最后页
-		if (($this->page <= intval(($this->showPage + 1)/2) && $this->showPage<$this->totlePage) || ($this->showExt && $this->page != $this->totlePage)) {
+		if (($this->page <= intval(($this->showPage + 1)/2) && $this->showPage < $this->totlePage) || ($showExt && $this->page != $this->totlePage)) {
 			$toPage = $this->totlePage;
 			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[3]}\">{$texts[3]}</a>";
-		}else if ($this->showExt) {
+		} else if ($showExt) {
 			$html .= "<span title=\"{$tips[3]}\">{$texts[3]}</span>";
 		}
-		//if ($this->showExt) {
-		//	$html .= " <input type=\"text\" size=\"5\" value=\"$this->page\" onkeydown=\"if (event.keyCode==13)location.href='".str_replace('{page}',"'+this.value+'", $this->url)."';\" />";
-		//	$html .= " <a class=\"button\" href=\"###\" onclick=\"location.href='".str_replace('{page}',"'+this.parentNode.getElementsByTagName('input')[0].value+'", $this->url)."';return false;\">Go</a>";
-		//}
+
+		if ($this->style == self::Bootstrap) {
+			$html = str_replace('<a', '<li><a', $html);
+			$html = str_replace('</a>', '</a></li>', $html);
+			$html = str_replace('<span', '<li><span', $html);
+			$html = str_replace('</span>', '</span></li>', $html);
+			$html = str_replace('<strong', '<li class="active"><span', $html);
+			$html = str_replace('</strong>', '</span></li>', $html);
+			$html = '<ul>' . $html . '</ul>';
+		}
+
 		return $html;
 	}
 
-	function pagecute4bootstrap() {
-		$html = $this->pagecute();
-		$html = str_replace('<a', '<li><a', $html);
-		$html = str_replace('</a>', '</a></li>', $html);
-		$html = str_replace('<span', '<li><span', $html);
-		$html = str_replace('</span>', '</span></li>', $html);
-		$html = str_replace('<strong', '<li class="active"><span', $html);
-		$html = str_replace('</strong>', '</span></li>', $html);
-		return '<ul>'.$html.'</ul>';
-	}
 }

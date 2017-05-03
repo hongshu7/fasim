@@ -41,6 +41,8 @@ class MainController extends Controller {
 		$pager->totalCount = 31;
 		$pager->pageSize = 15;
 		$pager->page = 2;
+		$pager->style = Pager::Bootstrap;
+		$pager->url = '?action=list&page={page}';
 		echo $pager->pagecute();
 	}
 
