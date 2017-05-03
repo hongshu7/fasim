@@ -8,7 +8,7 @@ namespace Fasim\Core;
 
 use \Fasim\Db\Query;
 use \Fasim\Db\DBFactory;
-use \Fasim\Cache\CacheFactory;
+use \Fasim\Facades\Cache;
 
 /**
  * SLModel 模型基类
@@ -382,19 +382,21 @@ class Model {
 		return $arrays;
 	}
 
-	private static $cache;
-	public static function cache() {
-		if (self::$cache == null) {
-			self::$cache = CacheFactory::getCache();
-		}
-		return self::$cache;
-	}
-
 	public static function db($m = null) {
 		if (!$m) {
 			$m = new static();
 		}
 		return DBFactory::getDB($m->getTableName());
+	}
+
+	public static function updateMany($where, $updates) {
+		$m = new static();
+		static::db()->update($m->tableName, $where, $updates);
+	}
+	
+	public static function deleteMany($where) {
+		$m = new static();
+		static::db()->delete($m->tableName, $where);
 	}
 			
 	public static function getWithCache() {
@@ -406,7 +408,7 @@ class Model {
 			return null;
 		}
 		$cacheKey = $m->tableName . '_' . implode('_', $args);
-		$result = self::cache()->get($cacheKey);
+		$result = Cache::get($cacheKey);
 		if ($result === false) {
 			$query = new Query(get_class($m));
 			$where = [];
@@ -415,15 +417,10 @@ class Model {
 				$where[$pk] = $args[$i++];
 			}
 			$result = $query->from($m->getTableName())->where($where)->first();
-			self::cache()->set($cacheKey, $result ? $result->toArray() : null, 3600 * 6); //6 hour
-		} else {
-			if (is_array($result)) {
-				$result = static::modelFromArray($result);
-			}
+			Cache::set($cacheKey, $result, 3600 * 6); //6 hour
 		}
 		return $result;
 	}
 
 }
 
-?>
