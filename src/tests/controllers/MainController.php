@@ -16,23 +16,25 @@ class MainController extends Controller {
 	}
 
 	public function doTest1() {
-		$testUser = new UserModel();
-		$testUser->nickname = 'test';
-		$testUser->gender = 1;
+		// $testUser = new UserModel();
+		// $testUser->nickname = 'test';
+		// $testUser->gender = 1;
 
-		Cache::getInstance()->set('test_user', $testUser, 3600);
+		// Cache::getInstance()->set('test_user', $testUser, 3600);
 
-		$testUsers = new ModelArray();
-		$testUsers[] = $testUser;
-		Cache::getInstance()->set('test_users', $testUsers, 3600);
+		// $testUsers = new ModelArray();
+		// $testUsers[] = $testUser;
+		// Cache::getInstance()->set('test_users', $testUsers, 3600);
+		$this->request->get('test')->intval();
+		echo $this->request->get->intval('test'), ',', $this->request->get['test'];
 	}
 
 	public function doTest2() {
-		$model = Cache::get('test_user');
-		print_r($model);
+		// $model = Cache::get('test_user');
+		// print_r($model);
 
-		$models = Cache::get('test_users');
-		print_r($models);
+		// $models = Cache::get('test_users');
+		// print_r($models);
 	}
 
 }
