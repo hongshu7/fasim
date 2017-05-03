@@ -4,6 +4,7 @@ namespace App\Controller;
 use Fasim\Core\Controller;
 use Fasim\Core\ModelArray;
 use Fasim\Facades\Cache;
+use Fasim\Library\Pager;
 use App\Model\UserModel;
 /**
  * @class MainController
@@ -35,6 +36,12 @@ class MainController extends Controller {
 
 		// $models = Cache::get('test_users');
 		// print_r($models);
+
+		$pager = new Pager();
+		$pager->totalCount = 31;
+		$pager->pageSize = 15;
+		$pager->page = 2;
+		echo $pager->pagecute();
 	}
 
 }

@@ -12,9 +12,7 @@ class Pager {
 	public $tip = '&laquo;,&lsaquo;,&rsaquo;,&raquo;';
 	public $showExt = true;
 	public $showPage = 10;
-
 	public $totlePage = 0;
-	
 	public $url = '?page={page}';
 
 	private $page = 1;
@@ -43,75 +41,71 @@ class Pager {
 	}
 
 	public function pagecute() {
-		$totlePage = $this->totlePage;
-		$currentPage = $this->currentPage;
-		$url = $this->url;
 		//计算起始和结束位置
-		if($totlePage<1)$totlePage=1;
-		if($showPage>$totlePage) $showPage=$totlePage;
-		if($currentPage<=intval(($showPage)/2)){
-			$s=1;
-			$e=$showPage;
-		}else if($totlePage-$currentPage<=intval($showPage/2)){
-			$e=$totlePage;
-			$s=$totlePage-$showPage+1;
+		if ($this->totlePage < 1) $this->totlePage = 1;
+		if ($this->showPage > $this->totlePage) $this->showPage = $this->totlePage;
+		if ($this->page <= intval(($this->showPage) / 2)) {
+			$s = 1;
+			$e = $this->showPage;
+		}else if ($this->totlePage-$this->page<=intval($this->showPage / 2)) {
+			$e = $this->totlePage;
+			$s = $this->totlePage-$this->showPage + 1;
 		}else{
-			$s=$currentPage-intval(($showPage+1)/2)+1;
-			$e=$s+$showPage-1;
+			$s = $this->page-intval(($this->showPage + 1)/2)+1;
+			$e = $s + $this->showPage-1;
 		}
 		//分页
-		$texts=explode(",", $this->text);
-		$tips=explode(",", $this->tip);
-		if(count($texts)!=4)  return;
+		$texts = explode(',', $this->text);
+		$tips = explode(',', $this->tip);
+		if (count($texts)!=4)  return;
 
-		$show_ext = $this->show_ext();
 		$html = '';
 		//第一页
-		if(($currentPage>intval(($showPage+1)/2) && $showPage<$totlePage) || ($show_ext && $currentPage != 1)){
-			$toPage='1';
-			$html.="<a href=\"".str_replace('{page}','1',$url)."\" title=\"{$tips[0]}\">{$texts[0]}</a>";
-		}else if($show_ext){
-			$html.="<span title=\"{$tips[0]}\">{$texts[0]}</span>";
+		if (($this->page>intval(($this->showPage + 1)/2) && $this->showPage<$this->totlePage) || ($this->showExt && $this->page != 1)) {
+			$toPage = '1';
+			$html .= "<a href=\"".str_replace('{page}', '1', $this->url)."\" title=\"{$tips[0]}\">{$texts[0]}</a>";
+		}else if ($this->showExt) {
+			$html .= "<span title=\"{$tips[0]}\">{$texts[0]}</span>";
 		}
 		//上一页
-		if($currentPage>1){
-			$toPage=$currentPage-1;
-			$html.="<a href=\"".str_replace('{page}',$toPage,$url)."\" rel=\"nofollow\" title=\"{$tips[1]}\">{$texts[1]}</a>";
-		}else if($show_ext){
-			$html.="<span title=\"{$tips[1]}\">{$texts[1]}</span>";
+		if ($this->page>1) {
+			$toPage = $this->page-1;
+			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[1]}\">{$texts[1]}</a>";
+		}else if ($this->showExt) {
+			$html .= "<span title=\"{$tips[1]}\">{$texts[1]}</span>";
 		}
 		//列页
-		for($p=$s;$p<=$e;$p++){
-			$toPage=$p;
-			if($p == $currentPage){
-				$html.="<strong>".$p."</strong>";
+		for($p = $s;$p<=$e;$p++) {
+			$toPage = $p;
+			if ($p == $this->page) {
+				$html .= "<strong>".$p."</strong>";
 			}else{
-				$html.="<a href=\"".str_replace('{page}',$toPage,$url)."\" rel=\"nofollow\">".$p."</a>";
+				$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\">".$p."</a>";
 			}
 		}
 		//下一页
-		if($currentPage<$totlePage){
-			$toPage=$currentPage+1;
-			$html.="<a href=\"".str_replace('{page}',$toPage,$url)."\" rel=\"nofollow\" title=\"{$tips[2]}\">{$texts[2]}</a>";
-		}else if($show_ext){
-			$html.="<span title=\"{$tips[2]}\">{$texts[2]}</span>";
+		if ($this->page<$this->totlePage) {
+			$toPage = $this->page + 1;
+			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[2]}\">{$texts[2]}</a>";
+		}else if ($this->showExt) {
+			$html .= "<span title=\"{$tips[2]}\">{$texts[2]}</span>";
 		}
 		//最后页
-		if(($currentPage<=intval(($showPage+1)/2) && $showPage<$totlePage) || ($show_ext && $currentPage != $totlePage)){
-			$toPage=$totlePage;
-			$html.="<a href=\"".str_replace('{page}',$toPage,$url)."\" rel=\"nofollow\" title=\"{$tips[3]}\">{$texts[3]}</a>";
-		}else if($show_ext){
-			$html.="<span title=\"{$tips[3]}\">{$texts[3]}</span>";
+		if (($this->page <= intval(($this->showPage + 1)/2) && $this->showPage<$this->totlePage) || ($this->showExt && $this->page != $this->totlePage)) {
+			$toPage = $this->totlePage;
+			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[3]}\">{$texts[3]}</a>";
+		}else if ($this->showExt) {
+			$html .= "<span title=\"{$tips[3]}\">{$texts[3]}</span>";
 		}
-		//if($show_ext){
-		//	$html.=" <input type=\"text\" size=\"5\" value=\"$currentPage\" onkeydown=\"if(event.keyCode==13)location.href='".str_replace('{page}',"'+this.value+'",$url)."';\" />";
-		//	$html.=" <a class=\"button\" href=\"###\" onclick=\"location.href='".str_replace('{page}',"'+this.parentNode.getElementsByTagName('input')[0].value+'",$url)."';return false;\">Go</a>";
+		//if ($this->showExt) {
+		//	$html .= " <input type=\"text\" size=\"5\" value=\"$this->page\" onkeydown=\"if (event.keyCode==13)location.href='".str_replace('{page}',"'+this.value+'", $this->url)."';\" />";
+		//	$html .= " <a class=\"button\" href=\"###\" onclick=\"location.href='".str_replace('{page}',"'+this.parentNode.getElementsByTagName('input')[0].value+'", $this->url)."';return false;\">Go</a>";
 		//}
 		return $html;
 	}
 
-	function pagecute4bootstrap($totlePage,$currentPage,$url='',$showPage=10,$show_ext=true,$text='&laquo;,&lsaquo;,&rsaquo;,&raquo;',$tip='&laquo;,&lsaquo;,&rsaquo;,&raquo;'){
-		$html = pagecute($totlePage,$currentPage,$url,$showPage,$show_ext,$text,$tip);
+	function pagecute4bootstrap() {
+		$html = $this->pagecute();
 		$html = str_replace('<a', '<li><a', $html);
 		$html = str_replace('</a>', '</a></li>', $html);
 		$html = str_replace('<span', '<li><span', $html);
