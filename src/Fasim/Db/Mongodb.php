@@ -88,8 +88,9 @@ class Mongodb implements IDB {
 			$this->connect();
 		}
 		$cmd = new \MongoDB\Driver\Command([ 'count' => $table, 'query' => $query ]);
-		$result = $this->manager->executeCommand($this->database, $cmd);
-		return intval($result);
+		$cursor = $this->manager->executeCommand($this->database, $cmd);
+		$response = $cursor->toArray();
+		return count($response) > 0 ? intval($response[0]->n) : 0;
 	}
 	
 	public function insert($table, $data, $returnId) {
