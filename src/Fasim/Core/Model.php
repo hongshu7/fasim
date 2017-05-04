@@ -89,7 +89,7 @@ class Model {
 			$pkValues[] = $this->_data[$pk];
 		}
 		$cacheKey = $this->tableName . '_' . implode('_', $pkValues);
-		self::cache()->delete($cacheKey);
+		Cache::delete($cacheKey);
 	}
 
 	public function fillData() {
