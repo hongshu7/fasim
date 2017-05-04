@@ -75,7 +75,7 @@ class Mongodb implements IDB {
 			$options['limit'] = $data['limit'];
 		}
 		if (isset($data['offset']) && intval($data['offset']) > 0) {
-			$options['offset'] = $data['offset'];
+			$options['skip'] = $data['offset'];
 		}
 		$query = new \MongoDB\Driver\Query($filter, $options);
 		$cursor = $this->manager->executeQuery($this->database . '.' . $data['table'], $query);

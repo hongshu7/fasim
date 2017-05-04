@@ -162,6 +162,7 @@ class Query {
 			case 'limit':
 				$this->data['limit'] = intval($value);
 				break;
+			case 'skip':
 			case 'offset':
 				$this->data['offset'] = intval($value);
 				break;
