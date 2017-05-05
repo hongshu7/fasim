@@ -98,9 +98,9 @@ class Request {
 	 */
 	public function __construct() {
 
-		$this->_allow_get_array = Config::get('allow_get_array') !== FALSE;
-		$this->_enable_xss = Config::get('global_xss_filtering') === TRUE;
-		$this->_enable_csrf = Config::get('csrf_protection') === TRUE;
+		//$this->_allow_get_array = Config::get('allow_get_array') !== FALSE;
+		//$this->_enable_xss = Config::get('global_xss_filtering') === TRUE;
+		//$this->_enable_csrf = Config::get('csrf_protection') === TRUE;
 
 		//如果提交的是json，要进行转换
 		$this->covertJsonPost();
