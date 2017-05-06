@@ -261,6 +261,8 @@ class Model {
 				if (is_string($value) && strlen($value) == 24) {
 					//objectid是固定24位的
 					$value = new \MongoDB\BSON\ObjectID($value);
+				} else if ($value === '') {
+					return '';
 				} else if (!($value instanceof \MongoDB\BSON\ObjectID)) {
 					return null;
 				}
