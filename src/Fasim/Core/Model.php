@@ -168,6 +168,12 @@ class Model {
 		}
 	}
 
+	public function __unset($key) {
+		if (isset($this->_data[$key])) {
+			unset($this->_data[$key]);
+		}
+	}
+
 	// 不是新模型，save执行update
 	public function setNotNew() {
 		$this->_isNew = false;

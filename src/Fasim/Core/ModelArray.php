@@ -12,8 +12,33 @@ use \Fasim\Cache\CacheFactory;
 /**
  * SLModel 模型基类
  */
-class ModelArray implements \IteratorAggregate, \ArrayAccess, \Serializable {
+class ModelArray implements  \IteratorAggregate, \ArrayAccess, \Countable, \Serializable {
+    private $position = 0;
 	private $models = array();
+
+     public function __construct() {
+        $this->position = 0;
+    }
+
+    function rewind() {
+        $this->position = 0;
+    }
+
+    function current() {
+        return $this->models[$this->position];
+    }
+
+    function key() {
+        return $this->position;
+    }
+
+    function next() {
+        ++$this->position;
+    }
+
+    function valid() {
+        return isset($this->models[$this->position]);
+    }
 
 	public function getIterator() {
         return new \ArrayIterator($this->models);
@@ -38,6 +63,10 @@ class ModelArray implements \IteratorAggregate, \ArrayAccess, \Serializable {
     public function offsetGet($offset) {
         return isset($this->models[$offset]) ? $this->models[$offset] : null;
     }
+
+    public function count() { 
+        return count($this->models); 
+    } 
 
 	public function serialize() {
         return serialize($this->models);
