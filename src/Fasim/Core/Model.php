@@ -126,20 +126,39 @@ class Model {
 		return $this;
 	}
 
-	
-	public function toArray($filter = null, $exclude = null) {
-		//todo:exclude
-		if (!empty($filter) && is_string($filter)) {
-			$filter = explode(',', $filter);
+	public function filter($includes = null, $excludes = null) {
+		if (!empty($includes) && is_string($includes)) {
+			$includes = explode(',', $includes);
 		}
-		if (!is_array($filter)) {
-			$filter = null;
+		if (!is_array($includes)) {
+			$includes = null;
 		}
+		if (!empty($excludes) && is_string($excludes)) {
+			$excludes = explode(',', $excludes);
+		}
+		if (!is_array($excludes)) {
+			$excludes = null;
+		}
+		$m = clone $this;
 		$result = array();
-		foreach ($this->_data as $k => $v) {
-			if ($filter == null || in_array($k, $filter)) {
-				$result[$k] = $this->$k;
+		foreach ($m->_data as $k => $v) {
+			if (($excludes != null && in_array($k, $excludes)) || ($includes != null && !in_array($k, $includes))) {
+				unset($m->_data[$k]);
 			}
+		}
+		return $m;
+	}
+
+	
+	public function toArray($includes = null, $excludes = null) {
+		$m = $this->filter($includes, $excludes);
+		$result = array();
+		foreach ($m->_data as $k => $v) {
+			$fv = $this->$k;
+			if ($fv instanceof Model || $fv instanceof ModelArray) {
+				$fv = $fv->toArray();
+			}
+			$result[$k] = $fv;
 		}
 		return $result;
 	}
@@ -172,6 +191,10 @@ class Model {
 		if (isset($this->_data[$key])) {
 			unset($this->_data[$key]);
 		}
+	}
+
+	public function __clone() {
+		//todo: copy _needUpdates _data
 	}
 
 	// 不是新模型，save执行update

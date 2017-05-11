@@ -91,5 +91,3 @@ class ModelArray implements  \IteratorAggregate, \ArrayAccess, \Countable, \Seri
 
 
 }
-
-?>
