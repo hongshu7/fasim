@@ -337,8 +337,18 @@ class Model {
 		return self::where([])->find();
 	}
 
-	public static function listLatest($count=1) {
+	public static function listLatest($count = 1) {
+		$count = intval($count);
 		return self::where([])->sort('_id', 'DESC')->limit($count)->find();
+	}
+
+	public static function listOffset($offset, $count = 10) {
+		$where = [];
+		if ($offset) {
+			$where['_id'] = ['$lt' => $offset];
+		}
+		$count = intval($count);
+		return self::where($where)->sort('_id', 'DESC')->limit($count)->find();
 	}
 
 	public static function get($value) {
