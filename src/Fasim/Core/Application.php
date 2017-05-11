@@ -177,6 +177,10 @@ class Application {
 		$this->singleton('cache', function($app) {
 			return new Cache();
 		});
+		$this->singleton('security', function($app) {
+			return new Security();
+		});
+		
 	}
 
 	private $instances = array();

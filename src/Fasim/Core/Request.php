@@ -6,6 +6,7 @@
 namespace Fasim\Core;
 
 use Fasim\Facades\Config as Cfg;
+use Fasim\Facades\Security as Security;
 
 class RequestData implements \IteratorAggregate, \ArrayAccess, \Serializable {
 	private $data = array();
@@ -90,6 +91,10 @@ class Request {
 	 * @var string
 	 */
 	protected $ipAddress = FALSE;
+
+	private $_enable_xss = FALSE;
+	private $_enable_csrf = FALSE;
+	private $_standardize_newlines = false;
 	/**
 	 * Constructor
 	 *
@@ -97,10 +102,9 @@ class Request {
 	 * and whether to allow the $_GET array
 	 */
 	public function __construct() {
-
-		//$this->_allow_get_array = Config::get('allow_get_array') !== FALSE;
-		//$this->_enable_xss = Config::get('global_xss_filtering') === TRUE;
-		//$this->_enable_csrf = Config::get('csrf_protection') === TRUE;
+		$this->_enable_xss = Cfg::get('request.global_xss_filtering', false) === TRUE;
+		$this->_enable_csrf = Cfg::get('request.csrf_protection', false) === TRUE;
+		$this->_standardize_newlines = Cfg::get('request.standardize_newlines', false) === TRUE;
 
 		//如果提交的是json，要进行转换
 		$this->covertJsonPost();
@@ -321,9 +325,9 @@ class Request {
 		$_SERVER['PHP_SELF'] = strip_tags($_SERVER['PHP_SELF']);
 		
 		// CSRF Protection check
-		// if ($this->_enable_csrf == TRUE) {
-		// 	$this->security->csrf_verify();
-		// }
+		if ($this->_enable_csrf == TRUE) {
+			Security::csrf_verify();
+		}
 		
 	}
 
@@ -376,19 +380,19 @@ class Request {
 		}
 		
 		// Remove control characters
-		//$str = $this->security->remove_invisible_characters($str);
+		$str = Security::remove_invisible_characters($str);
 		
 		// Should we filter the input data?
-		// if ($this->_enable_xss === TRUE) {
-		// 	$str = $this->security->xss_clean($str);
-		// }
+		if ($this->_enable_xss === TRUE) {
+			$str = Security::xss_clean($str);
+		}
 		
 		// Standardize newlines if needed
-		// if ($this->_standardize_newlines == TRUE) {
-		// 	if (strpos($str, "\r") !== FALSE) {
-		// 		$str = str_replace(array("\r\n", "\r", "\r\n\n"), PHP_EOL, $str);
-		// 	}
-		// }
+		if ($this->_standardize_newlines == TRUE) {
+			if (strpos($str, "\r") !== FALSE) {
+				$str = str_replace(array("\r\n", "\r", "\r\n\n"), PHP_EOL, $str);
+			}
+		}
 		
 		return $str;
 	}
