@@ -89,7 +89,7 @@ class Cache  {
 				$data = $ma;
 			} else {
 				$model = new $modelName();
-				$model->fromArray($data['data']);
+				$data = $model->fromArray($data['data']);
 			}
 		}
 		return $data;
