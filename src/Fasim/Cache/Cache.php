@@ -83,12 +83,13 @@ class Cache  {
 				$ma = new ModelArray();
 				foreach ($data['data'] as $item) {
 					$model = new $modelName();
+					$model->fromArray($data['data']);
 					$ma[] = $model;
 				}
 				$data = $ma;
 			} else {
 				$model = new $modelName();
-				$data = $model->fromArray($data['data']);
+				$model->fromArray($data['data']);
 			}
 		}
 		return $data;
