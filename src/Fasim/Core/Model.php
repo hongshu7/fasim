@@ -188,7 +188,7 @@ class Model {
 	}
 
 	public function __unset($key) {
-		if (isset($this->_data[$key])) {
+		if (array_key_exists($key, $this->_data)) {
 			unset($this->_data[$key]);
 		}
 	}
