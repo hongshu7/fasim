@@ -430,7 +430,7 @@ class Model {
 		return $result;
 	}
 
-	public static function getWithCache() {
+	public static function getWithCache(...$args) {
 		return self::getFromCache(...$args);
 	}
 
