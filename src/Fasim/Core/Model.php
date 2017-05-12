@@ -119,50 +119,6 @@ class Model {
 		}
 	}
 
-	public function fromArray($source) {
-		//todo:check schema
-		$this->_data = $source;
-		$this->setNotNew();
-		return $this;
-	}
-
-	public function filter($includes = null, $excludes = null) {
-		if (!empty($includes) && is_string($includes)) {
-			$includes = explode(',', $includes);
-		}
-		if (!is_array($includes)) {
-			$includes = null;
-		}
-		if (!empty($excludes) && is_string($excludes)) {
-			$excludes = explode(',', $excludes);
-		}
-		if (!is_array($excludes)) {
-			$excludes = null;
-		}
-		$m = clone $this;
-		$result = array();
-		foreach ($m->_data as $k => $v) {
-			if (($excludes != null && in_array($k, $excludes)) || ($includes != null && !in_array($k, $includes))) {
-				unset($m->_data[$k]);
-			}
-		}
-		return $m;
-	}
-
-	
-	public function toArray($includes = null, $excludes = null) {
-		$m = $this->filter($includes, $excludes);
-		$result = array();
-		foreach ($m->_data as $k => $v) {
-			$fv = $this->$k;
-			if ($fv instanceof Model || $fv instanceof ModelArray) {
-				$fv = $fv->toArray();
-			}
-			$result[$k] = $fv;
-		}
-		return $result;
-	}
-
 	public function __get($key) {
 		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
 		if (!isset($this->_data[$key])) {
@@ -202,13 +158,22 @@ class Model {
 		$this->_isNew = false;
 	}
 
-	// 不做转值
-	public function setData($key, $value) {
+	// 设置原始值，不做转值
+	public function setOriginalValue($key, $value) {
 		//检查sc
 		// if (!isset($this->schema[$key])) {
 		// 	return;
 		// }
 		$this->_data[$key] = $value;
+	}
+
+	// 获取原始值，不做转值
+	public function getOriginalValue($key) {
+		//检查sc
+		// if (!isset($this->schema[$key])) {
+		// 	return;
+		// }
+		return array_key_exists($key, $this->_data) ? $this->_data[$key] : null;
 	}
 
 	private function getValue($type, $value) {
@@ -328,9 +293,47 @@ class Model {
 		return $value;
 	}
 
-	public function getSchemaValue($key, $value) {
-		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
-		return $this->setValue($type, $value);
+	public function fromArray($source) {
+		//todo:check schema
+		$this->_data = $source;
+		$this->setNotNew();
+		return $this;
+	}
+
+	public function filter($includes = null, $excludes = null) {
+		$includes = is_string($includes) && !empty($includes) ? explode(',', $includes) : (array)$includes;
+		$excludes = is_string($excludes) && !empty($excludes) ? explode(',', $excludes) : (array)$excludes;
+
+		$m = clone $this;
+		$result = array();
+		foreach ($m->_data as $k => $v) {
+			if ((!empty($excludes) && in_array($k, $excludes)) || (!empty($includes) && !in_array($k, $includes))) {
+				unset($m->_data[$k]);
+			}
+		}
+		return $m;
+	}
+
+	
+	public function toArray($includes = null, $excludes = null) {
+
+		$includes = is_string($includes) && !empty($includes) ? explode(',', $includes) : (array)$includes;
+		$excludes = is_string($excludes) && !empty($excludes) ? explode(',', $excludes) : (array)$excludes;
+
+		$result = array();
+		foreach ($this->_data as $k => $v) {
+			if ((empty($includes) || in_array($k, $includes)) && (empty($excludes) || !in_array($k, $excludes))) {
+				if ($k == '_id' && !isset($this->schema['_id'])) {
+					continue;
+				}
+				$fv = $this->$k;
+				if ($fv instanceof Model || $fv instanceof ModelArray) {
+					$fv = $fv->toArray();
+				}
+				$result[$k] = $fv;
+			}
+		}
+		return $result;
 	}
 
 	//events
@@ -345,6 +348,7 @@ class Model {
 	public function onDelete() {
 		//do nothing
 	}
+	
 
 	//static methods
 
@@ -380,10 +384,14 @@ class Model {
 		return self::where($where)->sort('_id', 'DESC')->limit($count)->find();
 	}
 
-	public static function get($value) {
+	public static function get(...$args) {
+		//todo: use cache config
+		return self::getFromDb(...$args);
+	}
+
+	public static function getFromDb(...$args) {
 		$m = new static();
 		$primaryKeys = is_array($m->getPrimaryKey()) ? $m->getPrimaryKey() : [$m->getPrimaryKey()];
-		$args = func_get_args();
 		if (count($primaryKeys) != count($args)) {
 			//数量不对
 			return null;
@@ -398,6 +406,32 @@ class Model {
 
 		//print_r($data);
 		return $query->from($m->getTableName())->where($where)->first();
+	}
+
+	public static function getFromCache(...$args) {
+		$m = new static();
+		$primaryKeys = is_array($m->getPrimaryKey()) ? $m->getPrimaryKey() : [$m->getPrimaryKey()];
+		if (count($primaryKeys) != count($args)) {
+			//数量不对
+			return null;
+		}
+		$cacheKey = $m->tableName . '_' . implode('_', $args);
+		$result = Cache::get($cacheKey);
+		if ($result === false) {
+			$query = new Query(get_class($m));
+			$where = [];
+			$i = 0;
+			foreach ($primaryKeys as $pk) {
+				$where[$pk] = $args[$i++];
+			}
+			$result = $query->from($m->getTableName())->where($where)->first();
+			Cache::set($cacheKey, $result, 3600 * 6); //6 hour
+		}
+		return $result;
+	}
+
+	public static function getWithCache() {
+		return self::getFromCache(...$args);
 	}
 
 	public static function modelFromArray($source) {
@@ -440,28 +474,7 @@ class Model {
 		static::db()->delete($m->tableName, $where);
 	}
 			
-	public static function getWithCache() {
-		$m = new static();
-		$primaryKeys = is_array($m->getPrimaryKey()) ? $m->getPrimaryKey() : [$m->getPrimaryKey()];
-		$args = func_get_args();
-		if (count($primaryKeys) != count($args)) {
-			//数量不对
-			return null;
-		}
-		$cacheKey = $m->tableName . '_' . implode('_', $args);
-		$result = Cache::get($cacheKey);
-		if ($result === false) {
-			$query = new Query(get_class($m));
-			$where = [];
-			$i = 0;
-			foreach ($primaryKeys as $pk) {
-				$where[$pk] = $args[$i++];
-			}
-			$result = $query->from($m->getTableName())->where($where)->first();
-			Cache::set($cacheKey, $result, 3600 * 6); //6 hour
-		}
-		return $result;
-	}
+	
 
 }
 

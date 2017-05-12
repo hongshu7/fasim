@@ -42,7 +42,7 @@ class Query {
 			$model = new $this->modelClass();
 			$model->setNotNew();
 			foreach ($row as $k => $v) {
-				$model->setData($k, $v);
+				$model->setOriginalValue($k, $v);
 			}
 			$ret[] = $model;
 		}
@@ -181,7 +181,8 @@ class Query {
 			//值转换
 			$m = new $this->modelClass();
 			foreach ((array)$data as $k => $v) {
-				$data[$k] = $m->getSchemaValue($k, $v);
+				$m->$k = $v;
+				$data[$k] = $m->getOriginalValue($k);
 			}
 			//print_r($data);
 			$this->data['where'] = array_merge($this->data['where'], $data);
@@ -207,4 +208,4 @@ class Query {
 
 
 }
-?>
+
