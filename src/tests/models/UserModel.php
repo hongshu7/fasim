@@ -14,7 +14,7 @@ class UserModel extends BaseModel {
 	];
 
 	public static function test() {
-		new test();
+		//new test();
 	}
 
 }

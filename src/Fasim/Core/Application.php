@@ -316,14 +316,14 @@ class Application {
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$CONTROLLER_START));
 
 		$modulePath = $module ? ucfirst($module) . '\\' : '';
-		$controllerClassName = '\\App\\Controller\\'.$modulePath.ucfirst($controller).'Controller';
+		$className = ucfirst($controller).'Controller';
+		$controllerClassName = '\\App\\Controller\\' . $modulePath . $className;
 		
-		$controllerInst = null;
-		try {
-			$controllerInst = new $controllerClassName($this, $controller, $queryString);
-		} catch (Exception $exception) {
+		$filepath = APP_CONTROLLER_PATH . ($module ? $module . DIRECTORY_SEPARATOR : '') . $className . '.php';
+		if (!file_exists($filepath)) {
 			throw new Exception("Controller:$controller not found!", 404);
 		}
+		$controllerInst = new $controllerClassName($this, $controller, $queryString);
 
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$ACTION_START));
 		// 执行方法
