@@ -13,6 +13,7 @@ use App\Model\UserModel;
 class MainController extends Controller {
 
 	public function doDefault() {
+		UserModel::test();
 		echo 'hello, sir!';
 	}
 

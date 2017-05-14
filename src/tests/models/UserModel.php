@@ -13,7 +13,9 @@ class UserModel extends BaseModel {
 		'status' 		=> ['type' => 'int', 'default' => 1]
 	];
 
-
+	public static function test() {
+		new test();
+	}
 
 }
 

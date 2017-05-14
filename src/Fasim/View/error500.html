@@ -6,38 +6,90 @@ body {
 	background-color: #fff;
 	margin: 40px;
 	font-family: Lucida Grande, Verdana, Sans-serif;
-	font-size: 12px;
+	font-size: 14px;
+	line-height: 21px;
 	color: #000;
 }
 
 #content {
 	border: #999 1px solid;
 	background-color: #fff;
-	padding: 20px 20px 20px 20px;
+	padding: 20px 20px;
 }
 
 h1 {
-	font-weight: normal;
-	font-size: 14px;
+	font-weight: bold;
+	font-size: 16px;
 	color: #990000;
-	margin: 0 0 15px 0;
+	margin: 0;
+	padding: 0;
+}
+
+.msg {
+	color: #ff0000;
+	padding: 20px 0 10px 0;
+}
+
+ul {
+	margin: 0 0 0 15px;
+	padding: 0;
+	list-style: none;
+}
+
+li {
+	margin: 15px 0 0 0; 
+	padding: 0;
+	list-style: none;
+}
+
+span.file {
+	display: block;
+	color: #666;
+}
+
+span.func {
+	display: block;
+	margin-top: 5px; 
+	text-indent: 24px;
 }
 </style>
 </head>
 
 <body>
 	<div id="content">
-		<h1>{$code} Server Error</h1>
-		<div style="color:red;">
-			{$message}
+		<h1>{{ error.code }} Server Error</h1>
+		<div class="msg">
+			{{ error.message }}
 		</div>
-		{if $debug}
-		
+		{% if debug %}
 		<div style="margin-top:15px;">
 			<hr />
-			{$traceString}
+			<ul>
+				{% for line in error.trace %}
+					<li>
+						<span class="file">
+						<strong>#{{ loop.index }}</strong>
+						{% if line.file %}
+							{{ line.file }}, line {{ line.line }}
+						{% else %}
+							[internal function]
+						{% endif %}
+						</span>
+						<span class="func">
+							{% if line.class %}{{ line.class }}{{ line.type }}{% endif %}{{ line.function }}(
+								{% if line.args %}
+									'{{ line.args | join("', '") }}'
+								{% endif %}
+							)
+						
+						</span>
+		
+						<!-- line.args -->
+					</li>
+				{% endfor %}
+			</ul>
 		</div>
-		{/if}
+		{% endif %}
 	</div>
 </body>
 </html>

@@ -23,7 +23,7 @@ class Controller {
 
 	/**
 	 * 模板类
-	 * @var SLTemplate
+	 * @var Twig
 	 */
 	protected $view = null; // 视图类
 
@@ -77,20 +77,21 @@ class Controller {
 		//设置字符集
 		$this->charset = $this->config->item('charset', $this->charset);
 	
+		$loader = new \Twig_Loader_Filesystem(APP_VIEW_PATH);
+		$this->view = new \Twig_Environment($loader, array(
+			'cache' => APP_DATA_PATH . 'compile',
+			'charset' => $this->config->get('charset', 'utf-8'),
+			'debug' => $this->config->get('debug', false)
+		));
+
 		
-		$this->view = new Template($this);
-		$this->view->setTemplateRootDir(APP_VIEW_PATH);
-		$this->view->setCompileDir(APP_DATA_PATH . 'compile');
-		
-		//全局模块变量
-		$this->view->assign('base_url', $this->config->baseUrl());
 		
 		//$this->view->registerTag('include', $callback);
 		//$this->view->registerTag('data', $callback);
 		
 		// 初始化lang方案
-		if ($this->config->item('lang') !== false) {
-			$this->lang = $this->config->item('lang');
+		if ($this->config->item('lang', false) !== false) {
+			$this->lang = $this->config->get('lang');
 		}
 
 		$this->init();

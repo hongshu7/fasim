@@ -271,25 +271,31 @@ class Application {
 			//触发事件
 			$this->eventDispatcher->dispatchEvent(new \Fasim\Event\ExceptionEvent(\Fasim\Event\Event::$EXCEPTION, $exception));
 
+			$config = $this->make('config');
 			$view = $this->currentController->getView();
-			$view->setTemplateRootDir(FS_PATH . 'View');
+			$view->getLoader()->setPaths([ FS_PATH . 'View' ]);
+
 
 			$debug = $this->make('config')->get('debug') === true;
 			$traceString = $exception->getTraceAsString();
 			$traceString = str_replace("\n", "<br />\n", $traceString);
-			$view->assign('code', $exception->getCode());
-			$view->assign('message', $exception->getMessage());
-			$view->assign('file', $exception->getFile());
-			$view->assign('line', $exception->getLine());
-			$view->assign('trace', $exception->getTrace());
-			$view->assign('traceString', $traceString);
-			$view->assign('debug', $debug);
-	
+			$error = [
+				'code' => $exception->getCode(),
+				'message' => $exception->getMessage(),
+				'file' => $exception->getFile(),
+				'line' => $exception->getLine(),
+				'trace' => $exception->getTrace(),
+				'traceString' => $traceString,
+			];
+			$data = [
+				'error' => $error,
+				'debug' => $debug
+			];
 			
 			if (file_exists(FS_PATH . 'View' . DIRECTORY_SEPARATOR . 'error' . $exception->getCode() . '.html')) {
-				$view->display('error' . $exception->getCode() . '.html');
+				echo $view->render('error' . $exception->getCode() . '.html', $data);
 			} else {
-				$view->display('error500.html');
+				echo $view->render('error500.html', $data);
 			}
 		
 			//结束
@@ -385,7 +391,7 @@ class Application {
 
 		//输出缓冲区
 		flush();
-		exit($status);
+		//exit($status);
 
 		//todo: here response display
 	}
