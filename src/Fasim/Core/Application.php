@@ -321,7 +321,7 @@ class Application {
 		$controllerInst = null;
 		try {
 			$controllerInst = new $controllerClassName($this, $controller, $queryString);
-		} catch (\Exception $exception) {
+		} catch (Exception $exception) {
 			throw new Exception("Controller:$controller not found!", 404);
 		}
 
