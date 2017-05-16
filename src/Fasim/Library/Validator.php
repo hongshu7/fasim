@@ -120,7 +120,7 @@ class Validator {
 	 * @param string $formats 需要检验的格式数组
 	 * @return boolean
 	 */
-	function isValidDate($date, $formats = array('Y-m-d')) {
+	public static function isValidDate($date, $formats = array('Y-m-d')) {
 		$unixTime = strtotime($date);
 		if (!$unixTime) { //strtotime转换不对，日期格式显然不对。
 			return false;
