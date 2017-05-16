@@ -6,7 +6,7 @@ return array(
 	),
 	'cache' => array(
 		'type' => 'memcached',
-		'server' => 'localhost'
+		'server' => env('MEMCACHED', 'localhost')
 	),
 	'database' => array(
 		'table_prefix' => '',
