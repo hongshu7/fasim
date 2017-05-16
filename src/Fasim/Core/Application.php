@@ -329,7 +329,7 @@ class Application {
 		// 执行方法
 		$actionMethod = 'do'.ucfirst($action);
 		if (strpos($actionMethod, '_') !== false) {
-			$actionMethod = preg_replace('/_(\w?)/e', 'strtoupper(\'$1\')', $actionMethod);
+			$actionMethod = preg_replace_callback('/_(\w?)/', function($matches) { return strtoupper($matches[1]); }, $actionMethod);
 		}
 		if (method_exists($controllerInst, $actionMethod)) {
 			$controllerInst->setActionName($action);
