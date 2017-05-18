@@ -48,7 +48,7 @@ class Config {
 	 */
 	public function __construct() {
 		//读取主配置文件
-		$this->load();
+		$this->load('config', true);
 		
 		
 		//如果没有设置base_url,则自动获取base_url
@@ -73,22 +73,18 @@ class Config {
 	 *
 	 * @access public
 	 * @param string	配置文件名称
-	 * @param boolean   配置信息是否加载到其独立的section
-	 * @param boolean   是否在加载失败是忽略错误并返回false
+	 * @param boolean   配置信息是否合并到默认的config
 	 * @return boolean  是否加载成功
 	 */
-	public function load($file = '', $use_sections = FALSE, $fail_gracefully = FALSE) {
-		$file = ($file == '') ? 'config' : str_replace('.php', '', $file);
-		$found = FALSE;
-		$loaded = FALSE;
+	public function load($file, $marge_config = FALSE) {
+
+		$config = null;
 
 		$file_path = APP_CONFIG_PATH . $file . '.php';
 		
 		if (in_array($file_path, $this->is_loaded, TRUE)) {
-			$loaded = TRUE;
-		}
-		
-		if (!$loaded) {
+			return $this->sections_config[$file];
+		} else {
 			//没有加载，则开始加载
 			if (file_exists($file_path)) {
 				$found = TRUE;
@@ -98,39 +94,24 @@ class Config {
 					$config = [];
 				}
 			}
-			
-			
-			if (!$found || !isset($config) || !is_array($config)) {
-				if ($fail_gracefully === TRUE) {
-					return FALSE;
-				}
-				throw new Exception('Your ' . $file_path . ' file does not appear to contain a valid configuration array.');
-			}
-			
-			if ($use_sections === TRUE) {
-				if (isset($this->sections_config[$file])) {
-					$this->sections_config[$file] = array_merge($this->sections_config[$file], $config);
-				} else {
-					$this->sections_config[$file] = $config;
-				}
+
+			if (isset($this->sections_config[$file])) {
+				$this->sections_config[$file] = array_merge($this->sections_config[$file], $config);
 			} else {
+				$this->sections_config[$file] = $config;
+			}
+			if ($marge_config === TRUE) {
 				$this->config = array_merge($this->config, $config);
 			}
 			
 			$this->is_loaded[] = $file_path;
-			unset($config);
-		
-			$loaded = TRUE;
 		}
 		
-		if ($loaded === FALSE) {
-			if ($fail_gracefully === TRUE) {
-				return FALSE;
-			}
-			throw new Exception('The configuration file ' . $file . '.php' . ' does not exist.');
+		if ($config === null || !is_array($config)) {
+			throw new Exception('Your ' . $file_path . ' file does not appear to contain a valid configuration array.');
 		}
 		
-		return TRUE;
+		return $config;
 	}
 	
 	// --------------------------------------------------------------------
@@ -211,19 +192,6 @@ class Config {
 		return $this->get($item, $default);
 	}
 
-	// -------------------------------------------------------------
-
-	/**
-	 * 得到配置文件的一个值
-	 *
-	 *
-	 * @access public
-	 * @param string	配置组名
-	 * @return string
-	 */
-	public function sections($file) {
-		return isset($this->sections_config[$file]) ? $this->sections_config[$file] : null;
-	}
 	
 	// -------------------------------------------------------------
 	

@@ -163,8 +163,7 @@ class Application {
 		$this->singleton('router', function($app) {
 			//路由
 			$config = $this->make('config');
-			$config->load('router', true);
-			$routers = $config->sections('router');
+			$routers = $config->load('router');
 			$modules = $config->get('modules');
 			return new Router($routers, $modules);
 		});
