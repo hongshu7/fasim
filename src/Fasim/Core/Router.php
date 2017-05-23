@@ -204,7 +204,7 @@ class Router {
 	}
 
 	public function getWebsiteDirectory() {
-		$scriptName = $_SERVER['SCRIPT_NAME'];
+		$scriptName = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '';
 		if ($scriptName == '' || $scriptName{0} != '/') {
 			$scriptName = '/'.$scriptName;
 		}
