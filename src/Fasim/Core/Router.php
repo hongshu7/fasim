@@ -50,9 +50,9 @@ class Router {
 	
 	public function init() {
 		$wd = $this->getWebsiteDirectory();
-		
 		$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
 		$fixedRequestUri = substr($requestUri, strlen($wd));
+		
 
 		//check is contain "index.php"
 		if (strlen($fixedRequestUri) >= 9 && substr($fixedRequestUri, 0, 9) == 'index.php') {
@@ -191,6 +191,7 @@ class Router {
 			$this->matchAction = 'default';
 		}
 		
+		
 	}
 
 	function checkMatchRouterEvent($type, $uri) {
@@ -204,13 +205,17 @@ class Router {
 	}
 
 	public function getWebsiteDirectory() {
-		$scriptName = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '';
-		if ($scriptName == '' || $scriptName{0} != '/') {
-			$scriptName = '/'.$scriptName;
+		$wd = '/';
+		if (isset($_SERVER['HTTP_HOST'])) {
+			$scriptName = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '';
+			if ($scriptName == '' || $scriptName{0} != '/') {
+				$scriptName = '/'.$scriptName;
+			}
+			$directories = explode('/', $scriptName);
+			array_pop($directories);
+			$wd = implode('/', $directories) . '/';
 		}
-		$directories = explode('/', $scriptName);
-		array_pop($directories);
-		return implode('/', $directories) . '/';
+		return $wd;
 	}
 	
 	/**
