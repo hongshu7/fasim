@@ -119,6 +119,10 @@ class Model {
 		}
 	}
 
+	public function __isset($key) {
+		return isset($this->_data[$key]);
+	}
+
 	public function __get($key) {
 		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
 		if (!isset($this->_data[$key])) {
