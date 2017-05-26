@@ -10,7 +10,7 @@
             "email": "lhs168@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "twig/twig": "^1.33.2"
     },
