@@ -165,6 +165,26 @@ class Request {
 	}
 
 	/**
+	 * Fetch an item from either the GET array or the POST and covert into double
+	 *
+	 * @access public
+	 * @param
+	 *        	string	The index key
+	 * @param
+	 *        	int	default value
+	 * @return int
+	 */
+	function doubleval($index = '', $default = 0) {
+		$value = $default;
+		if (isset($_POST[$index])) {
+			$value = $_POST[$index];
+		} else if (isset($_GET[$index])) {
+			$value = $_GET[$index];
+		}
+		return doubleval($value);
+	}
+
+	/**
 	 * Fetch an item from the COOKIE array
 	 *
 	 * @access public
