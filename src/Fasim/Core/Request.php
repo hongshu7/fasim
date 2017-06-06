@@ -263,7 +263,7 @@ class Request {
 
 	private function covertJsonPost() {
 		$contentType = strtolower($_SERVER['HTTP_CONTENT_TYPE']);
-		if (strstr($contentType, 'json') == 'json') { // application/json
+		if (strpos($contentType, 'json') !== false) { // application/json
 			$requestBody = file_get_contents('php://input');
 			if ($requestBody{0} == '{' || $requestBody{0} == '[') {
 				$_POST = json_decode($requestBody, true);
