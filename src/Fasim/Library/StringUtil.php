@@ -180,5 +180,4 @@ class StringUtil {
 		return $result;
 	}
 
-
 }

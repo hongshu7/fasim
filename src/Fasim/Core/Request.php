@@ -165,6 +165,26 @@ class Request {
 	}
 
 	/**
+	 * Fetch an item from either the GET array or the POST and covert into float
+	 *
+	 * @access public
+	 * @param
+	 *        	string	The index key
+	 * @param
+	 *        	int	default value
+	 * @return int
+	 */
+	function floatval($index = '', $default = 0) {
+		$value = $default;
+		if (isset($_POST[$index])) {
+			$value = $_POST[$index];
+		} else if (isset($_GET[$index])) {
+			$value = $_GET[$index];
+		}
+		return floatval($value);
+	}
+
+	/**
 	 * Fetch an item from either the GET array or the POST and covert into double
 	 *
 	 * @access public
