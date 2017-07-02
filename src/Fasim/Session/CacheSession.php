@@ -3,6 +3,7 @@ namespace Fasim\Session;
 
 use Fasim\Core\Application;
 use Fasim\Facades\Config;
+use Fasim\Facades\Cache;
 
 class CacheSession implements ISession {
 	private $prefix = '';
@@ -16,7 +17,6 @@ class CacheSession implements ISession {
 			setcookie('PHPSESSID', $sessionId, 0, $cookieConfig['path'], $cookieConfig['domain'], $cookieConfig['secure']);
 		}
 		$this->prefix .= $sessionId.'/';
-		$this->memcache = \Fasim\Cache\CacheFactory::getCache();
 	}
 
 	/**
@@ -28,7 +28,7 @@ class CacheSession implements ISession {
 	 *        	对应字段值
 	 */
 	public function set($name, $value = '') {
-		$this->memcache->set($this->prefix.$name, $value, 86400);
+		Cache::set($this->prefix.$name, $value, 86400);
 	}
 
 	/**
@@ -39,7 +39,7 @@ class CacheSession implements ISession {
 	 * @return mixed 对应字段值
 	 */
 	public function get($name) {
-		return $this->memcache->get($this->prefix.$name);
+		return Cache::get($this->prefix.$name);
 	}
 
 	/**
@@ -49,13 +49,14 @@ class CacheSession implements ISession {
 	 *        	字段名
 	 */
 	public function delete($name) {
-		$this->memcache->delete($this->prefix.$name, $value);
+		Cache::delete($this->prefix.$name, $value);
 	}
 
 	/**
 	 * 清空所有Session
 	 */
 	public function clear() {
+		//Cache::flush();
 	}
 		
 

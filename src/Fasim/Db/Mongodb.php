@@ -12,25 +12,27 @@ use Fasim\Core\Exception;
  */
 class Mongodb implements IDB {
 	protected $_config = array();
+	protected $_uri = '';
 	protected $manager = null;
 	protected $database = '';
 
-	function __construct($config){
+	function __construct($config, $uri){
 		$this->_config = $config;
+		$this->_uri = $uri;
 	}
 	
 	public function connect() {
-		$this->_config['port'] = empty($this->_config['port']) ? 27017 : intval($this->_config['port']);
-		$auth = '';
-		if (isset($this->_config['user']) && isset($this->_config['user'])) {
-			$auth = $this->_config['user'] . ':' . $this->_config['pass'] . '@';
-		}
-		$uri = 'mongodb://' . $auth . $this->_config['host'] . ':' . $this->_config['port'] . '/' . $this->_config['database'];
-		$options = array();
-		if (isset($this->_config['replicaSet'])) {
-			$options['replicaSet'] = $this->_config['replicaSet'];
-		}
-		$this->manager = new \MongoDB\Driver\Manager($uri);
+		// $this->_config['port'] = empty($this->_config['port']) ? 27017 : intval($this->_config['port']);
+		// $auth = '';
+		// if (isset($this->_config['user']) && isset($this->_config['user'])) {
+		// 	$auth = $this->_config['user'] . ':' . $this->_config['pass'] . '@';
+		// }
+		// $uri = 'mongodb://' . $auth . $this->_config['host'] . ':' . $this->_config['port'] . '/' . $this->_config['database'];
+		// $options = array();
+		// if (isset($this->_config['replicaSet'])) {
+		// 	$options['replicaSet'] = $this->_config['replicaSet'];
+		// }
+		$this->manager = new \MongoDB\Driver\Manager($this->_uri);
 		$this->database = $this->_config['database'];
 
 	}

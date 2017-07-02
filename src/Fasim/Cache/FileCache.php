@@ -57,7 +57,7 @@ class FileCache implements ICache {
 	public function set($key, $data, $expire = 0) {
 		$fileName = $this->getFileName($key);
 		if (!file_exists($dirname = dirname($fileName))) {
-			SLFile::mkdir($dirname);
+			mkdir($dirname, 0777, true);
 		}
 		// $data = array(
 		// 	'data' => $data,
@@ -94,6 +94,7 @@ class FileCache implements ICache {
 	 */
 	public function get($key) {
 		$fileName = $this->getFileName($key);
+		
 		if (file_exists($fileName)) {
 			if (time() > filemtime($fileName)) {
 				$this->delete($key, 0);

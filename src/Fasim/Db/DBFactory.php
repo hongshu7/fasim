@@ -102,10 +102,10 @@ class DBFactory {
 		$config = $dsn->toArray();
 		switch ($config['engine']) {
 			case 'mongodb':
-				return new \Fasim\Db\Mongodb($config);
+				return new \Fasim\Db\Mongodb($config, $dbHost);
 				break;
 			default:
-				return new \Fasim\Db\Mysql($config);
+				return new \Fasim\Db\Mysql($config, $dbHost);
 				break;
 		}
 	}

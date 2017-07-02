@@ -20,7 +20,7 @@ class Mysql implements IDB {
 	var $_link = null;
 	var $_debug = null;
 	
-	function __construct($config){
+	function __construct($config, $uri){
 		$this->_config = $config;
 	}
 	
