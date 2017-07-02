@@ -66,6 +66,16 @@ class MemCache implements ICache {
 	}
 
 	/**
+	 * 一次写多个缓存
+	 *
+	 * @param array $items key value 数组
+	 * @param int $expire 缓存数据失效时间,单位：秒
+	 */
+	public function setMulti($items, $expire = 0) {
+		//todo:...
+	}
+
+	/**
 	 * 读取缓存
 	 *
 	 * @param string $key
@@ -77,6 +87,17 @@ class MemCache implements ICache {
 			return false; //cache debug 模式,不做缓存
 		}
 		return $this->cache->get($this->prefix.$key);
+	}
+
+	/**
+	 * 一次读取多个缓存
+	 *
+	 * @param string $keys key数组
+	 * @return mixed 读取出的缓存数据;false:没有取到数据;
+	 */
+	public function getMulti($keys) {
+		//todo:...
+		return null;
 	}
 
 	/**
