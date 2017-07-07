@@ -17,10 +17,12 @@ class Pager {
 	public $totlePage = 0;
 	public $url = '?page={page}';
 	public $style = self::Normal;
+	public $offset = 0;
 
 	private $page = 1;
 	private $totalCount = 0;
 	private $pageSize = 10;
+	
 
 	function __set($name, $value) { 
 		if ($name == 'totalCount' || $name == 'pageSize' || $name == 'page') {
@@ -41,6 +43,7 @@ class Pager {
 	private function calculate() {
 		$this->totlePage = ceil($this->totalCount / $this->pageSize);
 		$this->page = $this->page <= 0 ? 1 : ($this->page > $this->totlePage ? $this->totlePage : intval($this->page));
+		$this->offset = ($this->page - 1) * $this->pageSize;
 	}
 
 	public function pagecute() {

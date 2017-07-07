@@ -220,11 +220,11 @@ class Model {
 	private function setValue($type, $value) {
 		//数组
 		if (strlen($type) > 2 && substr($type, -2, 2) == '[]') {
-			$result = [];
-			if (!is_array($value)) {
-				return $result;
-			}
 			$type = substr($type, 0, -2);
+			if (!is_array($value)) {
+				return $this->setValue($type, $value);
+			}
+			$result = [];
 			foreach ($value as $v) {
 				$result[] = $this->setValue($type, $v);
 			}
