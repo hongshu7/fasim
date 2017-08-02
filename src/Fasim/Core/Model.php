@@ -17,6 +17,7 @@ class Model {
 
 	protected $tableName = '';
 	protected $primaryKey = 'id';
+	protected $useCache = false;
 
 	private $_isNew = true;
 	private $_needUpdates = [];
@@ -82,7 +83,9 @@ class Model {
 	}
 
 	public function deleteCache() {
-		
+		if (!$this->useCache) {
+			return;
+		}
 		$primaryKeys = is_array($this->primaryKey) ? $this->primaryKey : [$this->primaryKey];
 		$pkValues = [];
 		foreach ($primaryKeys as $pk) {
@@ -375,30 +378,15 @@ class Model {
 		return self::query()->where($data);
 	}
 
-	public static function listAll() {
-		return self::where([])->find();
-	}
-
-	public static function listLatest($count = 1) {
-		$count = intval($count);
-		return self::where([])->sort('_id', 'DESC')->limit($count)->find();
-	}
-
-	public static function listOffset($offset, $count = 10) {
-		$where = [];
-		if ($offset) {
-			$where['_id'] = ['$lt' => $offset];
-		}
-		$count = intval($count);
-		return self::where($where)->sort('_id', 'DESC')->limit($count)->find();
-	}
-
 	public static function get(...$args) {
-		//todo: use cache config
+		$m = new static();
+		if ($m->useCache) {
+			return self::getFromCache(...$args);
+		}
 		return self::getFromDb(...$args);
 	}
 
-	public static function getFromDb(...$args) {
+	protected static function getFromDb(...$args) {
 		$m = new static();
 		$primaryKeys = is_array($m->getPrimaryKey()) ? $m->getPrimaryKey() : [$m->getPrimaryKey()];
 		if (count($primaryKeys) != count($args)) {
@@ -417,7 +405,7 @@ class Model {
 		return $query->from($m->getTableName())->where($where)->first();
 	}
 
-	public static function getFromCache(...$args) {
+	protected static function getFromCache(...$args) {
 		$m = new static();
 		$primaryKeys = is_array($m->getPrimaryKey()) ? $m->getPrimaryKey() : [$m->getPrimaryKey()];
 		if (count($primaryKeys) != count($args)) {
@@ -439,10 +427,6 @@ class Model {
 		return $result;
 	}
 
-	public static function getWithCache(...$args) {
-		return self::getFromCache(...$args);
-	}
-
 	public static function modelFromArray($source) {
 		$m = new static();
 		return $m->fromArray($source);
@@ -455,15 +439,6 @@ class Model {
 			$resultArray[] = $m->fromArray($item);
 		}
 		return $resultArray;
-	}
-
-	//准备废弃
-	public static function modelsToArray($objList, $filter='') {
-		$arrays = [];
-		foreach ($objList as $obj) {
-			$arrays[] = $obj->toArray($filter);
-		}
-		return $arrays;
 	}
 
 	public static function db($m = null) {
