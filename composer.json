@@ -3,7 +3,7 @@
     "description": "a fast and simple framework",
     "type": "library",
     "license": "GPL",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "authors": [
         {
             "name": "Kevin Lai",
