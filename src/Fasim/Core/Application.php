@@ -323,13 +323,15 @@ class Application {
 			throw new Exception("Controller:$controller not found!", 404);
 		}
 		$controllerInst = new $controllerClassName($this, $controller, $queryString);
-
+		$this->currentController = $controllerInst;
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$ACTION_START));
 		// 执行方法
 		$actionMethod = 'do'.ucfirst($action);
 		if (strpos($actionMethod, '_') !== false) {
 			$actionMethod = preg_replace_callback('/_(\w?)/', function($matches) { return strtoupper($matches[1]); }, $actionMethod);
 		}
+
+		$actionError = false;
 		if (method_exists($controllerInst, $actionMethod)) {
 			$controllerInst->setActionName($action);
 			if ($controllerInst->beforeAction() !== false) {
@@ -337,13 +339,18 @@ class Application {
 			}
 			$controllerInst->afterAction();
 		} else {
-			throw new Exception("Action:$action not found in controller:$controller!", 404);
+			$actionError = true;
+			
 		}
-		$this->currentController = $controllerInst;
+		
 
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$ACTION_FINISH));
 
 		$this->eventDispatcher->dispatchEvent(new \Fasim\Event\Event(\Fasim\Event\Event::$CONTROLLER_FINISH));
+
+		if ($actionError) {
+			throw new Exception("Action:$action not found in controller:$controller!", 404);
+		}
 
 	}
 
