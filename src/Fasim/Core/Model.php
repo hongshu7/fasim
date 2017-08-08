@@ -249,7 +249,7 @@ class Model {
 						$nv[] = $this->setValue($type, $cv);
 					}
 					$result[$k] = $nv;
-				} if ($k == '$centerSphere') {
+				} else if ($k == '$centerSphere') {
 					$result[$k] = [
 						$this->setValue($type, $v[0]),
 						$this->setValue('float', $v[1])
