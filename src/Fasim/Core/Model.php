@@ -307,6 +307,12 @@ class Model {
 
 	public function fromArray($source) {
 		//todo:check schema
+		//fixed objectid
+		foreach ($source as $k => &$v) {
+			if (isset($this->schema[$k]) && $this->schema[$k]['type'] == 'objectid') {
+				$v = new \MongoDB\BSON\ObjectID($v);
+			}
+		}
 		$this->_data = $source;
 		$this->setNotNew();
 		return $this;
