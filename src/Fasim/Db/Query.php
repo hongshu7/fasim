@@ -40,10 +40,10 @@ class Query {
 		$ret = new ModelArray();
 		foreach ((array)$result as $row) {
 			$model = new $this->modelClass();
-			$model->setNotNew();
 			foreach ($row as $k => $v) {
 				$model->setOriginalValue($k, $v);
 			}
+			$model->setNotNew();
 			$ret[] = $model;
 		}
 		return $ret;

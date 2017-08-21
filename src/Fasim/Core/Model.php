@@ -13,6 +13,7 @@ use \Fasim\Facades\Cache;
 /**
  * SLModel 模型基类
  */
+//todo: model array
 class Model {
 
 	protected $tableName = '';
@@ -22,6 +23,9 @@ class Model {
 	private $_isNew = true;
 	private $_needUpdates = [];
 	private $_data = array();
+
+	private $parentModel = null;
+	private $parentKey = null;
 
 	public function __construct() {
 	}
@@ -34,44 +38,95 @@ class Model {
 		return $this->primaryKey;
 	}
 
-	public function save() {
-		//echo $this->_isNew ? '$this->_isNew': '...';
-		if ($this->_isNew) {
-			$this->fillData();
-			//filter data
-			$data = [];
-			foreach ($this->_data as $key => $item) {
-				if (isset($this->schema[$key])) {
-					$data[$key] = $item;
-				}
-			}
-			self::db($this)->insert($this->tableName, $data, true);
-			$this->_isNew = false;
-			$this->onAdd();
-		} else {
-			if (empty($this->_needUpdates)) {
-				//没有可更新的
-				return;
-			}
-			$updates = [];
-			foreach ($this->_needUpdates as $key) {
-				$updates[$key] = $this->_data[$key]; //??? $this->$key
-				
-			}
-			$this->_needUpdates = []; //置空
+	public function setParent($parentModel, $parentKey) {
+		$this->parentModel = $parentModel;
+		$this->parentKey = $parentKey;
+	}
 
+	public function isChildModel() {
+		return $this->tableName == '' || $this->primaryKey == '';
+	}
+
+	public function save() {
+		if ($this->isChildModel()) {
+			return;
+		}
+		if ($this->_isNew) {
+			$data = $this->getUpdates();
+			self::db($this)->insert($this->tableName, $data, true);
+			//set not new
+			$this->setNotNew();
+
+			$this->deleteCache();
+			$this->onAdd();
+			//todo: 触发child model onAdd
+		} else {
+
+			$updates = $this->getUpdates();
 			$primaryKeys = is_array($this->primaryKey) ? $this->primaryKey : [$this->primaryKey];
 			$where = [];
 			foreach ($primaryKeys as $pk) {
 				$where[$pk] = $this->_data[$pk];
 			}
 			self::db($this)->update($this->tableName, $where, $updates);
+			$this->deleteCache();
 			$this->onUpdate();
+			//todo: 触发child model onUpdate
 		}
-		$this->deleteCache();
+		
+	}
+
+	protected function getUpdates($forceNew=false) {
+		if ($this->_isNew || $forceNew) {
+			$this->fillData();
+			//filter data
+			$data = [];
+			foreach ($this->schema as $sk => $sv) {
+				if (isset($this->_data[$sk])) {
+					if ($sv['type']{0} == ':') {
+						if ($this->_data[$sk] instanceof Model) {
+							$data[$sk] = $this->_data[$sk]->getUpdates(true);
+						}
+					} else {
+						$data[$sk] = $this->_data[$sk];
+					}
+				}
+			}
+			return $data;
+		} else {
+			if (empty($this->_needUpdates)) {
+				//没有可更新的
+				return [];
+			}
+			$updates = [];
+			foreach ($this->_needUpdates as $key) {
+				$sc = $this->schema[$key];
+				if ($sc['type']{0} == ':') {
+					$m = $this->_data[$key];
+					if ($m instanceof Model) {
+						if ($m->_isNew) {
+							$childUpdates = $m->getUpdates();
+							$updates[$key] = $childUpdates;
+						} else {
+							$childUpdates = $m->getUpdates();
+							foreach ($childUpdates as $ck => $cv) {
+								$updates[$key.'.'.$ck] = $cv;
+							}
+						}
+					}
+				} else {
+					$updates[$key] = $this->_data[$key];
+				}
+			}
+			$this->_needUpdates = []; //置空
+			return $updates;
+		}
 	}
 
 	public function delete() {
+		if ($this->isChildModel()) {
+			return;
+		}
 		$primaryKeys = is_array($this->primaryKey) ? $this->primaryKey : [$this->primaryKey];
 		$where = [];
 		foreach ($primaryKeys as $pk) {
@@ -140,12 +195,34 @@ class Model {
 		$type = isset($this->schema[$key]) ? $this->schema[$key]['type'] : 'unknow';
 		
 		$v = $this->setValue($type, $value);
+
+		if (!$type{0} == ':') {
+			$this->_data[$key] = $v;
+			$oldValue = $this->_data[$key];
+			if ($oldValue != null && $oldValue instanceof Model) {
+				$oldValue->setParent(null, null);
+			}
+			if ($v != null && $v instanceof Model) {
+				$v->setParent($this, $key);
+				if (!$this->_isNew) {
+					$this->_needUpdates[] = $key;
+				}
+			}
+			return;
+		}
+
 		//exit($type .':'. $v);
 		if ($v !== null && $this->_data[$key] !== $v) {
 			$this->_data[$key] = $v;
 			//新建model及主键不存
 			if (!$this->_isNew && isset($this->schema[$key]) && (is_array($this->primaryKey) ? !in_array($key, $this->primaryKey) : $key != $this->primaryKey)) {
 				$this->_needUpdates[] = $key;
+				if ($this->parentModel != null) {
+					//echo('notify parent');
+					//通知上层更新
+					$key = $this->parentKey;
+					$this->parentModel->$key = $this;
+				}
 			}
 		}
 	}
@@ -163,27 +240,52 @@ class Model {
 	// 不是新模型，save执行update
 	public function setNotNew() {
 		$this->_isNew = false;
+		foreach ($this->_data as $d) {
+			if ($d instanceof Model) {
+				$d->setNotNew();
+			}
+		}
 	}
 
 	// 设置原始值，不做转值
-	public function setOriginalValue($key, $value) {
+	public function setOriginalValue($key, $val) {
 		//检查sc
-		// if (!isset($this->schema[$key])) {
-		// 	return;
-		// }
-		$this->_data[$key] = $value;
+		if (isset($this->schema[$key]) && $this->schema[$key]['type']{0} == ':') {
+			$mn = '\\App\\Model\\'.substr($this->schema[$key]['type'], 1);
+			$m = new $mn();
+			$m->setParent($this, $key);
+			foreach ($val as $k => $v) {
+				$m->setOriginalValue($k, $v);
+			}
+			$val = $m;
+		}
+		$this->_data[$key] = $val;
+		
 	}
 
 	// 获取原始值，不做转值
 	public function getOriginalValue($key) {
 		//检查sc
-		// if (!isset($this->schema[$key])) {
-		// 	return;
-		// }
-		return array_key_exists($key, $this->_data) ? $this->_data[$key] : null;
+		if (array_key_exists($key, $this->_data) ) {
+			$value = $this->_data[$key];
+			if ($value instanceof Model) {
+				$data = [];
+				foreach ($value->_data as $k => $v) {
+					$data[$k] = $v;
+				}
+				$value = $data;
+			}
+			return $value;
+		}  else {
+			return null;
+		}
 	}
 
 	private function getValue($type, $value) {
+		//model
+		if ($type{0} == ':') {
+			return $value instanceof Model ? $value : null;
+		}
 		//数组
 		if (strlen($type) > 2 && substr($type, -2, 2) == '[]') {
 			$result = [];
@@ -221,6 +323,10 @@ class Model {
 	}
 
 	private function setValue($type, $value) {
+		//model
+		if ($type{0} == ':') {
+			return $value instanceof Model ? $value : null;
+		}
 		//数组
 		if (strlen($type) > 2 && substr($type, -2, 2) == '[]') {
 			$type = substr($type, 0, -2);
