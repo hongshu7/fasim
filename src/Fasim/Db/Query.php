@@ -101,8 +101,8 @@ class Query {
 	 * @return array
 	 */
 	 //???
-	public function pairs($data, $key_field, $value_field) {
-		$result = $this->find($data);
+	public function pairs($key_field, $value_field) {
+		$result = $this->find();
 		$ret = array();
 		foreach ($result as $row) {
 			if ($key_field == null || !isset($row[$key_field])) {
@@ -124,8 +124,8 @@ class Query {
 	 * @return array
 	 */
 	  //???
-	public function dict($data, $key_field) {
-		$result = $this->find($data);
+	public function dict($key_field) {
+		$result = $this->find();
 		$ret = array();
 		foreach ($result as $row) {
 			$key = $row[$key_field];
