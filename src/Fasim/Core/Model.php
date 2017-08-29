@@ -63,6 +63,9 @@ class Model {
 		} else {
 
 			$updates = $this->getUpdates();
+			if (empty($updates)) {
+				return;
+			}
 			$primaryKeys = is_array($this->primaryKey) ? $this->primaryKey : [$this->primaryKey];
 			$where = [];
 			foreach ($primaryKeys as $pk) {
