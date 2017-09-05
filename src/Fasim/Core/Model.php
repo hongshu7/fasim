@@ -71,6 +71,7 @@ class Model {
 			foreach ($primaryKeys as $pk) {
 				$where[$pk] = $this->_data[$pk];
 			}
+			//print_r($updates);
 			self::db($this)->update($this->tableName, $where, $updates);
 			$this->deleteCache();
 			$this->onUpdate();
@@ -253,13 +254,14 @@ class Model {
 	// 设置原始值，不做转值
 	public function setOriginalValue($key, $val) {
 		//检查sc
-		if (isset($this->schema[$key]) && $this->schema[$key]['type']{0} == ':') {
+		if ($val != null && isset($this->schema[$key]) && $this->schema[$key]['type']{0} == ':') {
 			$mn = '\\App\\Model\\'.substr($this->schema[$key]['type'], 1);
 			$m = new $mn();
 			$m->setParent($this, $key);
 			foreach ($val as $k => $v) {
 				$m->setOriginalValue($k, $v);
 			}
+			
 			$val = $m;
 		}
 		$this->_data[$key] = $val;
