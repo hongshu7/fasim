@@ -40,7 +40,7 @@ class Mongodb implements IDB {
 		// 	$options['replicaSet'] = $this->_config['replicaSet'];
 		// }
 		
-		$this->manager = new \MongoDB\Driver\Manager($this->_uri, $this->options);
+		$this->manager = new \MongoDB\Driver\Manager($this->_uri, $this->_options);
 		$this->database = $this->_config['database'];
 
 	}
