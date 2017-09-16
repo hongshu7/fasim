@@ -13,13 +13,20 @@ use Fasim\Core\Exception;
 class Mongodb implements IDB {
 	protected $_config = array();
 	protected $_uri = '';
+	protected $_options = null;
 	protected $manager = null;
 	protected $database = '';
 
 	function __construct($config, $uri){
 		$this->_config = $config;
 		$this->_uri = $uri;
-	}
+		$questionIndex = strpos($this->_uri, '?');
+		if ($questionIndex !== false) {
+				$this->_uri = substr($uri, 0, $questionIndex);
+				$options =  substr($uri, $questionIndex + 1);
+				parse_str($options, $this->_options);
+		}
+}
 	
 	public function connect() {
 		// $this->_config['port'] = empty($this->_config['port']) ? 27017 : intval($this->_config['port']);
@@ -32,7 +39,8 @@ class Mongodb implements IDB {
 		// if (isset($this->_config['replicaSet'])) {
 		// 	$options['replicaSet'] = $this->_config['replicaSet'];
 		// }
-		$this->manager = new \MongoDB\Driver\Manager($this->_uri);
+		
+		$this->manager = new \MongoDB\Driver\Manager($this->_uri, $this->options);
 		$this->database = $this->_config['database'];
 
 	}
