@@ -167,17 +167,24 @@ class Application {
 			$modules = $config->get('modules');
 			return new Router($routers, $modules);
 		});
-		$this->singleton('request', function($app) {
-			return new Request();
+		$this->singleton('input', function($app) {
+			return new Input();
 		});
-		$this->singleton('response', function($app) {
-			return new Response();
+		$this->singleton('output', function($app) {
+			return new Output();
 		});
 		$this->singleton('cache', function($app) {
 			return new Cache();
 		});
 		$this->singleton('security', function($app) {
 			return new Security();
+		});
+		//兼容
+		$this->singleton('request', function($app) {
+			return $this->make('input');
+		});
+		$this->singleton('response', function($app) {
+			return $this->make('output');
 		});
 		
 	}

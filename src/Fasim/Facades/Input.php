@@ -9,7 +9,7 @@ namespace Fasim\Facades;
 /**
  * 输入类
  */
-class Request extends Facade {
+class Input extends Facade {
 
     /**
      * Get the registered name of the component.

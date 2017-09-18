@@ -17,6 +17,6 @@ class Response extends Facade {
      * @return string
      */
     protected static function getFacadeAccessor() {
-        return 'response';
+        return 'output';
     }
 }

@@ -69,8 +69,11 @@ class Controller {
 		//初始化系统配置
 		$this->config = $this->app->make('config');
 
-		$this->request = $this->app->make('request');
-		$this->response = $this->app->make('response');
+		$this->input = $this->app->make('input');
+		$this->output = $this->app->make('output');
+		//兼容旧的
+		$this->request = $this->input;
+		$this->response = $this->output;
 
 		$this->session = \Fasim\Session\SessionFactory::getSession();
 
@@ -179,9 +182,9 @@ class Controller {
 	 */
 	public function display($html) {
 
-		$this->response->setContentType($this->contentType, $this->charset);
-		$this->response->appendOutput($html);
-		$this->response->display();
+		$this->output->setContentType($this->contentType, $this->charset);
+		$this->output->appendOutput($html);
+		$this->output->display();
 
 
 	}

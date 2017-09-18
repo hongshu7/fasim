@@ -8,65 +8,116 @@ namespace Fasim\Core;
 use Fasim\Facades\Config as Cfg;
 use Fasim\Facades\Security as Security;
 
-class RequestData implements \IteratorAggregate, \ArrayAccess, \Serializable {
-	private $data = array();
-	public function __construct($data) {
-		$this->data = $data;
+class InputItem  {
+	private $rawValue;
+	public function __construct($value) {
+		$this->rawValue = $value;
 	}
 
-	public function getIterator() {
-        return new \ArrayIterator($this->data);
-    }
+	public function raw() {
+		return $this->rawValue;
+	}
 
-	public function offsetSet($offset, $value) {
-        if (is_null($offset)) {
-            $this->data[] = $value;
-        } else {
-            $this->data[$offset] = $value;
-        }
-    }
-
-    public function offsetExists($offset) {
-        return isset($this->data[$offset]);
-    }
-
-    public function offsetUnset($offset) {
-        unset($this->data[$offset]);
-    }
-
-    public function offsetGet($offset) {
-        return isset($this->data[$offset]) ? $this->data[$offset] : null;
-    }
-
-	public function serialize() {
-        return serialize($this->data);
-    }
-    public function unserialize($data) {
-        $this->data = unserialize($data);
-    }
-
-	public function trim($index = '') {
+	public function trim() {
 		$value = '';
-		if (isset($this->data[$index])) {
-			$value = $this->data[$index] . '';
+		if ($this->rawValue !== null) {
+			$value = $this->rawValue . '';
 		}
 		return trim($value);
 	}
 
-	function intval($index = '', $default = 0) {
+	public function intval($index = '', $default = 0) {
 		$value = $default;
-		if (isset($this->data[$index])) {
-			$value = $this->data[$index];
+		if ($this->rawValue !== null) {
+			$value = $this->rawValue;
 		}
 		return intval($value);
 	}
+	
+	public function floatval($index = '', $default = 0) {
+		$value = $default;
+		if ($this->rawValue !== null) {
+			$value = $this->rawValue;
+		}
+		return floatval($value);
+	}
+
+	public function doubleval($index = '', $default = 0) {
+		$value = $default;
+		if ($this->rawValue !== null) {
+			$value = $this->rawValue;
+		}
+		return doubleval($value);
+	}
+
+	public function __toString() {
+		return $this->rawValue . '';
+	}
+}
+
+class InputCollection implements \IteratorAggregate, \ArrayAccess, \Serializable {
+	private $_data = array();
+	private $_nullItem = null;
+	public function __construct($data) {
+		foreach ($data as $key => $val) {
+			$item = new InputItem($val);
+			$this->_data[$key] = $item;
+		}
+		$this->_nullItem = new InputItem(null); 
+	}
+
+	public function getIterator() {
+        return new \ArrayIterator($this->_data);
+    }
+
+	public function offsetSet($offset, $value) {
+        if (is_null($offset)) {
+            $this->_data[] = $value;
+        } else {
+            $this->_data[$offset] = $value;
+        }
+    }
+
+    public function offsetExists($offset) {
+        return isset($this->_data[$offset]);
+    }
+
+    public function offsetUnset($offset) {
+        unset($this->_data[$offset]);
+    }
+
+    public function offsetGet($offset) {
+        return isset($this->_data[$offset]) ? $this->_data[$offset] : $this->_nullItem;
+    }
+
+	public function serialize() {
+		$serializes = [];
+		foreach ($data as $key => $val) {
+			$serializes[$key] = $val->raw();
+		}
+        return serialize($serializes);
+	}
+	
+    public function unserialize($data) {
+		$unserializes = unserialize($data);
+		$this->_data = [];
+		foreach ($unserializes as $key => $val) {
+			$item = new InputItem($val);
+			$this->_data[$key] = $item;
+		}
+	}
+	
+	public function __get($key) {
+		return $this->offsetGet($key);
+	}
+
 }
 
 /**
  * @class Request
  * 输入类
  */
-class Request {
+class Input extends InputCollection {
 	/**
 	 * get data
 	 *
@@ -84,13 +135,13 @@ class Request {
 	 *
 	 * @var string
 	 */
-	protected $referer = FALSE;
+	protected $_referer = FALSE;
 	/**
 	 * client ip address
 	 *
 	 * @var string
 	 */
-	protected $ipAddress = FALSE;
+	protected $_ipAddress = FALSE;
 
 	private $_enable_xss = FALSE;
 	private $_enable_csrf = FALSE;
@@ -113,12 +164,15 @@ class Request {
 		$this->sanitizeGlobals();
 
 		//todo:filter get and post data
-		$this->get = new RequestData($_GET);
-		$this->post = new RequestData($_POST);
+		$this->get = new InputCollection($_GET);
+		$this->post = new InputCollection($_POST);
+		$request = array_merge($_GET, $_POST);
+		
+		parent::__construct($request);
 	}
 	
 	
-	function isPost() {
+	public function isPost() {
 		return $_POST ? true : false;
 	}
 	
@@ -132,7 +186,7 @@ class Request {
 	 *        	bool	isTrim
 	 * @return string
 	 */
-	function string($index = '', $isTrim = true) {
+	public function string($index = '', $isTrim = true) {
 		$value = '';
 		if (isset($_POST[$index])) {
 			$value = $_POST[$index];
@@ -174,7 +228,7 @@ class Request {
 	 *        	int	default value
 	 * @return int
 	 */
-	function floatval($index = '', $default = 0) {
+	public function floatval($index = '', $default = 0) {
 		$value = $default;
 		if (isset($_POST[$index])) {
 			$value = $_POST[$index];
@@ -194,7 +248,7 @@ class Request {
 	 *        	int	default value
 	 * @return int
 	 */
-	function doubleval($index = '', $default = 0) {
+	public function doubleval($index = '', $default = 0) {
 		$value = $default;
 		if (isset($_POST[$index])) {
 			$value = $_POST[$index];
@@ -214,7 +268,7 @@ class Request {
 	 *        	bool
 	 * @return string
 	 */
-	function cookie($name = '', $xss_clean = FALSE, $prefix='') {
+	public function cookie($name = '', $xss_clean = FALSE, $prefix='') {
 		$cfg = Cfg::get('cookie');
 		if ($prefix == '' and $cfg['prefix'] != '') {
 			$prefix = $cfg['prefix'];
@@ -228,13 +282,13 @@ class Request {
 	 * @access public
 	 * @return string
 	 */
-	function referer() {
-		if ($this->referer !== FALSE) {
-			return $this->referer;
+	public function referer() {
+		if ($this->_referer !== FALSE) {
+			return $this->_referer;
 		}
-		$this->referer = (!isset($_SERVER['HTTP_REFERER'])) ? FALSE : $_SERVER['HTTP_REFERER'];
+		$this->_referer = (!isset($_SERVER['HTTP_REFERER'])) ? FALSE : $_SERVER['HTTP_REFERER'];
 		
-		return $this->referer;
+		return $this->_referer;
 	}
 
 	/**
@@ -244,8 +298,8 @@ class Request {
 	 * @return string
 	 */
 	function ipAddress() {
-		if ($this->ipAddress !== FALSE) {
-			return $this->ipAddress;
+		if ($this->_ipAddress !== FALSE) {
+			return $this->_ipAddress;
 		}
 		
 		$proxyIps = Cfg::get('proxy_ips');
@@ -253,32 +307,32 @@ class Request {
 			$proxies = preg_split('/[\s,]/', $proxyIps, -1, PREG_SPLIT_NO_EMPTY);
 			$proxies = is_array($proxies) ? $proxies : array($proxies);
 			
-			$this->ipAddress = in_array($_SERVER['REMOTE_ADDR'], $proxies) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
+			$this->_ipAddress = in_array($_SERVER['REMOTE_ADDR'], $proxies) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
 		} elseif ($_SERVER['REMOTE_ADDR'] && $_SERVER['HTTP_CLIENT_IP']) {
-			$this->ipAddress = $_SERVER['HTTP_CLIENT_IP'];
+			$this->_ipAddress = $_SERVER['HTTP_CLIENT_IP'];
 		} elseif ($_SERVER['REMOTE_ADDR']) {
-			$this->ipAddress = $_SERVER['REMOTE_ADDR'];
+			$this->_ipAddress = $_SERVER['REMOTE_ADDR'];
 		} elseif ($_SERVER['HTTP_CLIENT_IP']) {
-			$this->ipAddress = $_SERVER['HTTP_CLIENT_IP'];
+			$this->_ipAddress = $_SERVER['HTTP_CLIENT_IP'];
 		} elseif ($_SERVER['HTTP_X_FORWARDED_FOR']) {
-			$this->ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+			$this->_ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
 		}
 		
-		if ($this->ipAddress === FALSE) {
-			$this->ipAddress = '0.0.0.0';
-			return $this->ipAddress;
+		if ($this->_ipAddress === FALSE) {
+			$this->_ipAddress = '0.0.0.0';
+			return $this->_ipAddress;
 		}
 		
-		if (strpos($this->ipAddress, ',') !== FALSE) {
-			$x = explode(',', $this->ipAddress);
-			$this->ipAddress = trim(end($x));
+		if (strpos($this->_ipAddress, ',') !== FALSE) {
+			$x = explode(',', $this->_ipAddress);
+			$this->_ipAddress = trim(end($x));
 		}
 		
-		// if (!$this->_validIp($this->ipAddress)) {
-		// 	$this->ipAddress = '0.0.0.0';
+		// if (!$this->_validIp($this->_ipAddress)) {
+		// 	$this->_ipAddress = '0.0.0.0';
 		// }
 		
-		return $this->ipAddress;
+		return $this->_ipAddress;
 	}
 
 	private function covertJsonPost() {
@@ -382,7 +436,7 @@ class Request {
 	 * @param string
 	 * @return string
 	 */
-	function _clean_input_keys($str) {
+	private function _clean_input_keys($str) {
 		if (!preg_match("/^[a-z0-9:_\\/-]+$/i", $str)) {
 			exit('Disallowed Key Characters.');
 		}
@@ -401,7 +455,7 @@ class Request {
 	 *        	string
 	 * @return string
 	 */
-	function _clean_input_data($str) {
+	private function _clean_input_data($str) {
 		if (is_array($str)) {
 			$new_array = array();
 			foreach ($str as $key => $val) {

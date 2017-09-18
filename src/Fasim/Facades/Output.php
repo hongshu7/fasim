@@ -7,9 +7,9 @@
 namespace Fasim\Facades;
 
 /**
- * 输入类
+ * 输出类
  */
-class Request extends Facade {
+class Output extends Facade {
 
     /**
      * Get the registered name of the component.
@@ -17,6 +17,6 @@ class Request extends Facade {
      * @return string
      */
     protected static function getFacadeAccessor() {
-        return 'input';
+        return 'output';
     }
 }
