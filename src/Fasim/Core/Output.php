@@ -10,7 +10,7 @@ use Fasim\Facades\Config as Cfg;
  * @class Response
  * 输出类
  */
-class Response {
+class Output {
 	/**
 	 * Current output string
 	 *
