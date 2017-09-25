@@ -13,7 +13,7 @@ use Fasim\Core\Exception;
 class Mongodb implements IDB {
 	protected $_config = array();
 	protected $_uri = '';
-	protected $_options = null;
+	protected $_options = [];
 	protected $manager = null;
 	protected $database = '';
 
