@@ -14,8 +14,8 @@ class Mongodb implements IDB {
 	protected $_config = array();
 	protected $_uri = '';
 	protected $_options = [];
-	protected $manager = null;
-	protected $database = '';
+	protected $_manager = null;
+	protected $_database = '';
 
 	function __construct($config, $uri){
 		$this->_config = $config;
@@ -40,8 +40,8 @@ class Mongodb implements IDB {
 		// 	$options['replicaSet'] = $this->_config['replicaSet'];
 		// }
 		
-		$this->manager = new \MongoDB\Driver\Manager($this->_uri, $this->_options);
-		$this->database = $this->_config['database'];
+		$this->_manager = new \MongoDB\Driver\Manager($this->_uri, $this->_options);
+		$this->_database = $this->_config['database'];
 
 	}
 
@@ -51,7 +51,7 @@ class Mongodb implements IDB {
 	
 	
 	public function find($data) {
-		if (!$this->_mongo) {
+		if (!$this->_manager) {
 			$this->connect();
 		}
 		$filter = $data['where'];
@@ -88,34 +88,34 @@ class Mongodb implements IDB {
 			$options['skip'] = $data['offset'];
 		}
 		$query = new \MongoDB\Driver\Query($filter, $options);
-		$cursor = $this->manager->executeQuery($this->database . '.' . $data['table'], $query);
+		$cursor = $this->_manager->executeQuery($this->_database . '.' . $data['table'], $query);
 		$result = $cursor->toArray();
 		return $result;
 	}
 
 	public function count($table, $query) {
-		if (!$this->_mongo) {
+		if (!$this->_manager) {
 			$this->connect();
 		}
 		$cmd = new \MongoDB\Driver\Command([ 'count' => $table, 'query' => $query ]);
-		$cursor = $this->manager->executeCommand($this->database, $cmd);
+		$cursor = $this->_manager->executeCommand($this->_database, $cmd);
 		$response = $cursor->toArray();
 		return count($response) > 0 ? intval($response[0]->n) : 0;
 	}
 	
 	public function insert($table, $data, $returnId) {
-		if (!$this->_mongo) {
+		if (!$this->_manager) {
 			$this->connect();
 		}
 		$bulk = new \MongoDB\Driver\BulkWrite(['ordered' => true]);
 		$bulk->insert($data);
 		$writeConcern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
-		return $this->manager->executeBulkWrite($this->database . '.' . $table, $bulk, $writeConcern);
+		return $this->_manager->executeBulkWrite($this->_database . '.' . $table, $bulk, $writeConcern);
 		//print_r($data);
 	}
 	
 	public function update($table, $where, $data) {
-		if (!$this->_mongo) {
+		if (!$this->_manager) {
 			$this->connect();
 		}
 		$bulk = new \MongoDB\Driver\BulkWrite(['ordered' => true]);
@@ -123,19 +123,19 @@ class Mongodb implements IDB {
 		$updates = ['$set' => $data];
 		$bulk->update($where, $updates, $options);
 		$writeConcern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
-		return $this->manager->executeBulkWrite($this->database . '.' . $table, $bulk, $writeConcern);
+		return $this->_manager->executeBulkWrite($this->_database . '.' . $table, $bulk, $writeConcern);
 		//print_r($result);
 	}
 
 	public function delete($table, $where) {
-		if (!$this->_mongo) {
+		if (!$this->_manager) {
 			$this->connect();
 		}
 		$bulk = new \MongoDB\Driver\BulkWrite(['ordered' => true]);
 		$options = array('multi' => true, 'upsert' => false);
 		$bulk->delete($where, $options);
 		$writeConcern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
-		return $this->manager->executeBulkWrite($this->database . '.' . $table, $bulk, $writeConcern);
+		return $this->_manager->executeBulkWrite($this->_database . '.' . $table, $bulk, $writeConcern);
 		//print_r($result);
 	}
 
