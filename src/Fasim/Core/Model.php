@@ -200,7 +200,7 @@ class Model {
 		
 		$v = $this->setValue($type, $value);
 
-		if (!$type{0} == ':') {
+		if ($type{0} == ':') {
 			$this->_data[$key] = $v;
 			$oldValue = $this->_data[$key];
 			if ($oldValue != null && $oldValue instanceof Model) {
@@ -215,8 +215,13 @@ class Model {
 			return;
 		}
 
-		//exit($type .':'. $v);
-		if ($v !== null && $this->_data[$key] !== $v) {
+		$ov = $this->_data[$key];
+		$nv = $v;
+		if ($type == 'objectid') {
+			$ov = strval($ov);
+			$nv = strval($nv);
+		}
+		if ($v !== null && $ov !== $nv) {
 			$this->_data[$key] = $v;
 			//新建model及主键不存
 			if (!$this->_isNew && isset($this->schema[$key]) && (is_array($this->primaryKey) ? !in_array($key, $this->primaryKey) : $key != $this->primaryKey)) {
