@@ -5,13 +5,13 @@
  */
 namespace Fasim\Core;
 
-
+use Fasim\Facades\Config as Cfg;
 /**
- * @class SLRouter
+ * @class Router
  * 路由类
  */
 class Router {
-	private $routers = '';
+	private $routers = array();
 	private $modules = array();
 	private $uriPath = '';
 	private $queryArray = array();
@@ -20,12 +20,9 @@ class Router {
 	private $matchController = '';
 	private $matchAction = '';
 	
-	public function __construct($routers, $modules=null) {
-		if (is_array($modules)) {
-			$this->modules = $modules;
-		}
+	public function __construct() {
 		$this->init();
-		$this->setRouters($routers);
+		$this->setRouters();
 	}
 	
 	public function getUriPath() {
@@ -49,10 +46,37 @@ class Router {
 	}
 	
 	public function init() {
+		//获取配置
+		
+		$this->modules = Cfg::get('modules');
+
 		$wd = $this->getWebsiteDirectory();
 		$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
 		$fixedRequestUri = substr($requestUri, strlen($wd));
 		
+		
+		$domains = Cfg::load('domain');
+		if (!empty($domains)) {
+			$host = $_SERVER['HTTP_HOST'];
+			foreach ($domains as $domain => $value) {
+				$domain = preg_replace('/![\*\?\:\w\.]/', '', $domain);
+				$domain = str_replace('.', '\.', $domain);
+				$domain = str_replace('?', '[\w\.]?', $domain);
+				$domain = str_replace('*', '[\w\.]*', $domain);
+				if (preg_match('/'.$domain.'/i', $host)) {
+					if (isset($value['module'])) {
+						$this->matchModule = $value['module'];
+					}
+					if (isset($value['controller'])) {
+						$this->matchController = $value['controller'];
+					}
+					if (isset($value['action'])) {
+						$this->matchAction = $value['action'];
+					}
+					break;
+				}
+			}
+		}
 
 		//check is contain "index.php"
 		if (strlen($fixedRequestUri) >= 9 && substr($fixedRequestUri, 0, 9) == 'index.php') {
@@ -104,10 +128,11 @@ class Router {
 			list($qsk, $qsv) = strpos($qs, '=') === false ? array($qs, '') : explode('=', $qs, 2);
 			$this->queryArray[$qsk] = urldecode($qsv);
 		}
-}
+	}
 
-	public function setRouters($routers) {
-		$this->routers = array();
+	public function setRouters() {
+		$this->routers = [];
+		$routers = Cfg::load('router');
 		$this->addRouters($routers);
 	}
 
@@ -131,6 +156,7 @@ class Router {
 
 			$p = explode('/', $ca);
 			if (count($p) == 2) {
+				//add empty module
 				array_splice($p, 0, 0, '');
 			}
 
@@ -155,7 +181,9 @@ class Router {
 			foreach($this->routers as $router) {
 				$matchUri = $router['uri'];
 				if ($matchUri == $uri || $matchUri == $uri.'/' || $this->checkMatchRouterEvent($matchUri, $uri) || $this->checkMatchRouterEvent($matchUri, $uri.'/')) {
-					$this->matchModule = $router['module'];
+					if (!empty($router['module'])) {
+						$this->matchModule = $router['module'];
+					}
 					$this->matchController = $router['controller'];
 					$this->matchAction = $router['action'];
 					//query
@@ -170,7 +198,7 @@ class Router {
 			array_shift($components);
 			if (count($components) > 0) {
 				$component = array_shift($components);
-				if (in_array($component, $this->modules)) {
+				if ($this->matchModule == '' && in_array($component, $this->modules)) {
 					$this->matchModule = $component;
 					if (count($components) > 0) {
 						$this->matchController = array_shift($components);

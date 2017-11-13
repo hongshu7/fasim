@@ -161,11 +161,7 @@ class Application {
 			return new Config();
 		});
 		$this->singleton('router', function($app) {
-			//路由
-			$config = $this->make('config');
-			$routers = $config->load('router');
-			$modules = $config->get('modules');
-			return new Router($routers, $modules);
+			return new Router();
 		});
 		$this->singleton('input', function($app) {
 			return new Input();

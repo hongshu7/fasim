@@ -14,13 +14,13 @@ class Pager {
 	public $text = '&laquo;,&lsaquo;,&rsaquo;,&raquo;';
 	public $tip = '&laquo;,&lsaquo;,&rsaquo;,&raquo;';
 	public $showPage = 10;
-	public $totlePage = 0;
+	public $totalPage = 0;
 	public $url = '?page={page}';
 	public $style = self::Normal;
 	public $offset = 0;
 
 	private $page = 1;
-	private $totalCount = 0;
+	private $totalCount = -1;
 	private $pageSize = 10;
 	
 
@@ -41,21 +41,23 @@ class Pager {
 	} 
 
 	private function calculate() {
-		$this->totlePage = ceil($this->totalCount / $this->pageSize);
-		$this->page = $this->page <= 0 ? 1 : ($this->page > $this->totlePage ? $this->totlePage : intval($this->page));
+		if ($this->totalCount >= 0) {
+			$this->totalPage = ceil($this->totalCount / $this->pageSize);
+			$this->page = $this->page <= 0 ? 1 : ($this->page > $this->totalPage ? $this->totalPage : intval($this->page));
+		}
 		$this->offset = ($this->page - 1) * $this->pageSize;
 	}
 
 	public function pagecute() {
 		//计算起始和结束位置
-		if ($this->totlePage < 1) $this->totlePage = 1;
-		if ($this->showPage > $this->totlePage) $this->showPage = $this->totlePage;
+		if ($this->totalPage < 1) $this->totalPage = 1;
+		if ($this->showPage > $this->totalPage) $this->showPage = $this->totalPage;
 		if ($this->page <= intval(($this->showPage) / 2)) {
 			$s = 1;
 			$e = $this->showPage;
-		}else if ($this->totlePage-$this->page<=intval($this->showPage / 2)) {
-			$e = $this->totlePage;
-			$s = $this->totlePage-$this->showPage + 1;
+		}else if ($this->totalPage-$this->page<=intval($this->showPage / 2)) {
+			$e = $this->totalPage;
+			$s = $this->totalPage-$this->showPage + 1;
 		}else{
 			$s = $this->page-intval(($this->showPage + 1)/2)+1;
 			$e = $s + $this->showPage-1;
@@ -72,7 +74,7 @@ class Pager {
 
 		$html = '';
 		//第一页
-		if (($this->page > intval(($this->showPage + 1) / 2) && $this->showPage < $this->totlePage) || ($showExt && $this->page != 1)) {
+		if (($this->page > intval(($this->showPage + 1) / 2) && $this->showPage < $this->totalPage) || ($showExt && $this->page != 1)) {
 			$toPage = '1';
 			$html .= "<a href=\"".str_replace('{page}', '1', $this->url)."\" title=\"{$tips[0]}\">{$texts[0]}</a>";
 		} else if ($showExt) {
@@ -95,15 +97,15 @@ class Pager {
 			}
 		}
 		//下一页
-		if ($this->page < $this->totlePage) {
+		if ($this->page < $this->totalPage) {
 			$toPage = $this->page + 1;
 			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[2]}\">{$texts[2]}</a>";
 		} else if ($showExt) {
 			$html .= "<span title=\"{$tips[2]}\">{$texts[2]}</span>";
 		}
 		//最后页
-		if (($this->page <= intval(($this->showPage + 1)/2) && $this->showPage < $this->totlePage) || ($showExt && $this->page != $this->totlePage)) {
-			$toPage = $this->totlePage;
+		if (($this->page <= intval(($this->showPage + 1)/2) && $this->showPage < $this->totalPage) || ($showExt && $this->page != $this->totalPage)) {
+			$toPage = $this->totalPage;
 			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[3]}\">{$texts[3]}</a>";
 		} else if ($showExt) {
 			$html .= "<span title=\"{$tips[3]}\">{$texts[3]}</span>";

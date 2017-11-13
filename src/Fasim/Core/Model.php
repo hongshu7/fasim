@@ -214,7 +214,6 @@ class Model {
 			}
 			return;
 		}
-
 		$ov = $this->_data[$key];
 		$nv = $v;
 		if ($type == 'objectid') {
@@ -227,7 +226,6 @@ class Model {
 			if (!$this->_isNew && isset($this->schema[$key]) && (is_array($this->primaryKey) ? !in_array($key, $this->primaryKey) : $key != $this->primaryKey)) {
 				$this->_needUpdates[] = $key;
 				if ($this->parentModel != null) {
-					//echo('notify parent');
 					//通知上层更新
 					$key = $this->parentKey;
 					$this->parentModel->$key = $this;
