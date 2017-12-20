@@ -56,6 +56,11 @@ class Router {
 		
 		
 		$domains = Cfg::load('domain');
+		$matched = null;
+		if (isset($domains['__default__'])) {
+			$matched = $domains['__default__'];
+			unset($domains['__default__']);
+		}
 		if (!empty($domains)) {
 			$host = $_SERVER['HTTP_HOST'];
 			foreach ($domains as $domain => $value) {
@@ -64,16 +69,19 @@ class Router {
 				$domain = str_replace('?', '[\w\.]?', $domain);
 				$domain = str_replace('*', '[\w\.]*', $domain);
 				if (preg_match('/'.$domain.'/i', $host)) {
-					if (isset($value['module'])) {
-						$this->matchModule = $value['module'];
-					}
-					if (isset($value['controller'])) {
-						$this->matchController = $value['controller'];
-					}
-					if (isset($value['action'])) {
-						$this->matchAction = $value['action'];
-					}
+					$matched = $value;
 					break;
+				}
+			}
+			if ($matched) {
+				if (isset($matched['module'])) {
+					$this->matchModule = $matched['module'];
+					if (isset($value['controller'])) {
+						$this->matchController = $matched['controller'];
+						if (isset($value['action'])) {
+							$this->matchAction = $matched['action'];
+						}
+					}
 				}
 			}
 		}
