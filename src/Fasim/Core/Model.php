@@ -491,7 +491,7 @@ class Model {
 	}
 
 	public static function where($data = array(), $more=null) {
-		if ($more != null) {
+		if (is_string($data) && $more !== null) {
 			$data = [$data => $more];
 		}
 		//var_dump($data);
