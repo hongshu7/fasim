@@ -217,7 +217,7 @@ class Model {
 		$ov = $this->_data[$key];
 		$nv = $v;
 		if ($type == 'objectid') {
-			$ov = strval($ov);
+			$ov = $ov === null ? null : strval($ov);
 			$nv = strval($nv);
 		}
 		if ($v !== null && $ov !== $nv) {
@@ -494,7 +494,6 @@ class Model {
 		if (is_string($data) && $more !== null) {
 			$data = [$data => $more];
 		}
-		//var_dump($data);
 		return self::query()->where($data);
 	}
 
