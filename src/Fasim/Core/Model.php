@@ -27,6 +27,8 @@ class Model {
 	private $parentModel = null;
 	private $parentKey = null;
 
+	private $returnIdKey = null;
+
 	public function __construct() {
 	}
 
@@ -53,7 +55,12 @@ class Model {
 		}
 		if ($this->_isNew) {
 			$data = $this->getUpdates();
-			self::db($this)->insert($this->tableName, $data, true);
+			$insertId = self::db($this)->insert($this->tableName, $data, true);
+			if ($this->returnIdKey != null) {
+				$rik = $this->returnIdKey;
+				$this->returnIdKey = null;
+				$this->$rik = $insertId;
+			}
 			//set not new
 			$this->setNotNew();
 
@@ -61,7 +68,6 @@ class Model {
 			$this->onAdd();
 			//todo: 触发child model onAdd
 		} else {
-
 			$updates = $this->getUpdates();
 			if (empty($updates)) {
 				return;
@@ -158,6 +164,10 @@ class Model {
 		foreach ($this->schema as $k => $v) {
 			if (!isset($this->_data[$k])) {
 				$value = $v['default'];
+				if ($v['type'] == 'int' && $value === 'auto') {
+					$this->returnIdKey = $k;
+					continue;
+				}
 				switch ($v['type']) {
 					case 'objectid':
 						if ($value === 'auto') {
@@ -217,7 +227,7 @@ class Model {
 		$ov = $this->_data[$key];
 		$nv = $v;
 		if ($type == 'objectid') {
-			$ov = $ov === null ? null : strval($ov);
+			$ov = strval($ov);
 			$nv = strval($nv);
 		}
 		if ($v !== null && $ov !== $nv) {
@@ -491,9 +501,10 @@ class Model {
 	}
 
 	public static function where($data = array(), $more=null) {
-		if (is_string($data) && $more !== null) {
+		if ($more != null) {
 			$data = [$data => $more];
 		}
+		//var_dump($data);
 		return self::query()->where($data);
 	}
 

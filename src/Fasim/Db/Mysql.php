@@ -17,7 +17,7 @@ class Mysql implements IDB {
 	static $querynum = 0;
 	var $_version = '';
 	var $_config = array();
-	var $_link = null;
+	var $_conn = null;
 	var $_debug = null;
 	
 	function __construct($config, $uri){
@@ -45,17 +45,18 @@ class Mysql implements IDB {
 			$dbhost .= ':' . intval($config['port']);
 		}
 		
-		$func = empty($pconnect) ? 'mysql_connect' : 'mysql_pconnect';
-		if(!$this->_link = @$func($dbhost, $dbuser, $dbpw, $newlink)) {
-			$this->halt('Can not connect to MySQL server');
+		$this->_conn = new \mysqli($dbhost, $dbuser, $dbpw, $dbname);
+		if ($this->_conn->connect_errno) {
+			$this->halt('Failed to connect to MySQL server');
 		} else {
 			if($this->version() > '4.1') {
 				$dbcharset = in_array(strtolower($dbcharset), array('gbk', 'big5', 'utf-8')) ? str_replace('-', '', $dbcharset) : 'utf8';
 				$serverset = $dbcharset ? 'character_set_connection='.$dbcharset.', character_set_results='.$dbcharset.', character_set_client=binary' : '';
-				$serverset .= $this->version() > '5.0.1' ? ((empty($serverset) ? '' : ',').'sql_mode=\'\'') : '';
-				$serverset && mysql_query("SET $serverset", $this->_link);
+				if($this->version() > '5.0.1') {
+					$serverset .=  (empty($serverset) ? '' : ',') . 'sql_mode=\'\'';
+				}
+				$serverset && $this->_conn->query("SET $serverset");
 			}
-			$dbname && @mysql_select_db($dbname, $this->_link);
 		}
 
 	}
@@ -65,27 +66,35 @@ class Mysql implements IDB {
 	}
 	
 	public function close() {
-		return mysql_close($this->_link);
+		return $this->_conn->close();
 	}
 	
 	public function find($data) {
 		$sql = $this->getQuerySql($data);
 		$ret = array();
-		$query = $this->query($sql);
-		if($query){
-			while(($row = $this->fetchArray($query)) == true) {
+		$result = $this->query($sql);
+		if ($result){
+			while ($row = $result->fetch_assoc()) {
 				$ret[] = $row;
 			}
 		}
 		return $ret;
 	}
 
-	public function count($table, $query) {
-
+	public function count($table, $data) {
+		$sql = $this->getCountSql($table, $data);
+		$result = $this->query($sql);
+		$count = -1;
+		if ($result){
+			if ($row = $result->fetch_row()) {
+				$count = intval($row[0]);
+			}
+		}
+		return $count;
 	}
 
 	public function insert($table, $data, $returnId) {
-		$sql = $this->getQuerySql($data);
+		$sql = $this->getInsertSql($table, $data);
 		$this->executeNonQuery($sql);
 		if ($returnId) {
 			return $this->insertId();
@@ -93,22 +102,21 @@ class Mysql implements IDB {
 	}
 	
 	public function update($table, $where, $data) {
-		$sql = $this->getQuerySql($data);
+		$sql = $this->getUpdateSql($table, $where, $data);
 		return $this->executeNonQuery($sql);
 	}
 
 	public function delete($table, $where) {
-		$sql = $this->getQuerySql($data);
+		$sql = $this->getDeleteSql($data, $where);
 		return $this->executeNonQuery($sql);
 	}
 	
-	private function executeNonQuery($data) {
-		$sql = $this->getQuerySql($data);
+	private function executeNonQuery($sql) {
 		$this->query($sql, 'UNBUFFERED');
 	}
 	
 	private function insertId() {
-		return ($id = mysql_insert_id($this->_link)) >= 0 ? $id : $this->result($this->query("SELECT last_insert_id()"), 0);
+		return $this->_conn->insert_id;
 	}
 	
 	public function command($type, $data) {
@@ -117,45 +125,28 @@ class Mysql implements IDB {
 
 	public function version() {
 		if(empty($this->_version)) {
-			$this->_version = mysql_get_server_info($this->_link);
+			$this->_version = $this->_conn->server_version;
 		}
 		return $this->_version;
 	}
 	
-	private function selectDb($dbname) {
-		return mysql_select_db($dbname, $this->_link);
-	}
 	
 	private function query($sql, $type = '') {
 		//echo $sql;
-		if(!is_resource($this->_link) || !mysql_ping($this->_link)){
+		if(!is_resource($this->_conn)){ //|| !$this->_conn->ping()
 			$this->connect();
 		}
-		$func = $type == 'UNBUFFERED' && @function_exists('mysql_unbuffered_query') ?
-		'mysql_unbuffered_query' : 'mysql_query';
-		if(!($query = $func($sql, $this->_link))) {
-			if($type != 'SILENT' && substr($type, 5) != 'SILENT') {
-				$this->halt('MySQL Query Error', $sql);
-			}
+		if(!($query = $this->_conn->query($sql))) {
+			$this->halt('MySQL Query Error', $sql);
 		}
-	
 		self::$querynum++;
 		return $query;
 	}
 	
-	private function fetchArray($query, $result_type = MYSQL_ASSOC) {
-		return mysql_fetch_array($query, $result_type);
-	}
-	
-	private function result($query, $row = 0) {
-		$query = @mysql_result($query, $row);
-		return $query;
-	}
 	
 	private function halt($message = '', $sql = '') {
-		$error_no = $this->_link ? mysql_errno($this->_link) : mysql_errno();
-		$error = $this->_link ? mysql_error($this->_link) : mysql_error();
-		$message .= ': ' . $error;
+		//$error_no = $this->_conn->errno;
+		$message .= ': ' . is_resource($this->_conn) ? $this->_conn->error : 'Connect Fail';
 
 		if($this->_debug && trim($sql) != ''){
 			$message .= "<br />\nSQL: $sql";
@@ -175,33 +166,51 @@ class Mysql implements IDB {
 			'offset' => 0,
 			'limit' => 0
 		);
-		$data = array_merge($_data, $data);
+		$data = array_merge($_data, (array)$data);
 		$fields = $this->getFieldsSql($data['fields']);
 		$where = $this->getWhereSql($data['where']);
 		$sort = $this->getSortSql($data['sort']);
 		$limit = '';
 		if ($data['limit'] > 0) {
-			$limit = $data['limit'];
+			$limit = intval($data['limit']);
 			if ($data['offset'] > 0){
-				$limit = $data['offset'].','.$data['limit'];
+				$limit = intval($data['offset']).','.intval($data['limit']);
 			}
+			$limit = 'limit '.$limit;
 		}
 		$sql = "SELECT {$fields} FROM {$data['table']} {$where} {$sort} {$limit}";
-		//echo $sql,'<br/>'."\n";
-		//exit();
 		return $sql;
 	}
 
-	private function getUpdateSql($data) {
-
+	private function getCountSql($table, $data) {
+		$where = $this->getWhereSql($data);
+		return "SELECT COUNT(*) FROM {$table} {$where}";
 	}
 
-	private function getInsertSql($data) {
-
+	private function getUpdateSql($table, $where, $data) {
+		$where = $this->getWhereSql($where);
+		$updates = [];
+		foreach ($data as $k => $v) {
+			$k = addslashes($k);
+			$v = addslashes($v);
+			$updates[] = "`$k`='$v'";
+		}
+		$sql = 'UPDATE `'.$table.'` SET ' . implode(',', $updates) . ' ' . $where;
+		return $sql;
 	}
 
-	private function getDeleteSql($data) {
+	private function getInsertSql($table, $data) {
+		$sql = 'INSERT INTO `'.$table.'`(`';
+		$sql .= implode('`,`', array_map('addslashes', array_keys($data)));
+		$sql .= "`) VALUES('";
+		$sql .= implode("','", array_map('addslashes', array_values($data)));
+		$sql .= "')";
+		return $sql;
+	}
 
+	private function getDeleteSql($table, $data) {
+		$where = $this->getWhereSql($data);
+		return "DELETE FROM {$table} {$where}";
 	}
 
 	public function getFieldsSql($fields) {
@@ -216,41 +225,106 @@ class Mysql implements IDB {
 	public function getWhereSql($condition) {
 		$sql = '';
 		if ($condition != null && !empty($condition)) {
-			$sql .= " WHERE ";
-			if (is_array($condition)) {
-				$and = '';
-				foreach ($condition as $key => $val) {
-					$key = '`'.addslashes($key).'`';
-					$opt = '=';
-					if (is_array($val)) {
-						$opt = strtoupper(trim($val[0]));
-						if ($opt == 'IN') {
-							$opt = ' IN ';
-							if (is_array($val[1])) {
-								$val = '('.implode(',', $this->addslashes($val[1])).')';
-							} else {
-								$val = '('.$val[1].')';
-							}
-						} else if ($opt == 'BETWEEN') {
-							$key = '('.$key;
-							$opt = ' BETWEEN ';
-							$val = addslashes($val[1]).' AND '.addslashes($val[2]).')';
-						} else {
-							//LIKE etc..
-							$opt = " $opt ";
-							$val = '\''.addslashes($val[1]).'\'';
-						}
-					} else {
-						$val = '\''.addslashes($val).'\'';
-					}
-					$sql .= $and . "$key$opt$val";
-					$and = ' AND ';
-				}
-			} else if ($condition != '') {
-				$sql .= $condition;
-			}
+			$sql .= " WHERE ".$this->getChildWhereSql($condition);
 		}
+		//echo $sql.'<br>';
 		return $sql;
+	}
+
+	public function getChildWhereSql($data) {
+		$and = '';
+		foreach ($data as $key => $val) {
+			$result = '';
+			if ($key{0} == '$') {
+				if ($key == '$or') {
+					$result = '(';
+					$or = '';
+					foreach ($val as $row) {
+						$hk0 = false;
+						if (count($row) > 1) {
+							$hk0 = true;
+						} else {
+							$items = array_values($row)[0];
+							if (is_array($items) && count($items) > 1) {
+								$hk0 = true;
+							}
+						}
+						$kh1 = $hk0 ? '(' : '';
+						$kh2 = $hk0 ? ')' : '';
+						$cws = $this->getChildWhereSql($row);
+						if ($cws) {
+							$result .= $or . $kh1 . $cws . $kh2;
+							$or = ' OR ';
+						}
+					}
+					$result .= ')';
+				}
+			} else {
+				$skey = '`'.addslashes($key).'`';
+				$itemResult = '';
+				$itemAnd = '';
+				if (is_array($val)) {
+					foreach ($val as $itemKey => $itemVal) {
+						if ($itemKey{0} != '$') {
+							continue;
+						}
+						$mark = strtolower(trim(substr($itemKey, 1)));
+						switch ($mark) {
+							case 'gt':
+							case 'gte': 
+							case 'lt':
+							case 'lte':
+							case 'eq':
+							case 'ne': {
+								$map = [
+									'gt' => '>',
+									'gte' => '>=',
+									'lt' => '<',
+									'lte' => '<=',
+									'eq' => '=',
+									'ne' => '<>',
+								];
+								$sval = '\''.addslashes($itemVal).'\'';
+								$itemResult = $skey.$map[$mark].$sval;
+								break;
+							}
+							case 'in': {
+								$sval = '('.implode(',', $this->addslashes($itemVal)).')';
+								$itemResult = "$skey IN $sval";
+								break;
+							}
+							case 'nin': {
+								$sval = '('.implode(',', $this->addslashes($itemVal)).')';
+								$itemResult = "$skey NOT IN $sval";
+								break;
+							}
+							case 'between': {
+								$sval = addslashes($itemVal[0]).' AND '.addslashes($itemVal[1]);
+								$itemResult = "($skey BETWEEN $sval)";
+								break;
+							}
+							case 'like': {
+								$sval = '\''.addslashes($itemVal).'\'';
+								$itemResult = "$skey LIKE $sval";
+								break;
+							}
+						}
+						if ($itemResult) {
+							$result .= $itemAnd . $itemResult;
+							$itemAnd = ' AND ';
+						}
+					}
+				} else {
+					$sval = '\''.addslashes($val).'\'';
+					$result = "$skey=$sval";
+				}
+			}
+			if ($result) {
+				$sql .= $and . $result;
+				$and = " AND ";
+			}
+			return $sql;
+		}
 	}
 
 	public function getSortSql($order) {

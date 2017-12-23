@@ -96,19 +96,20 @@ class Query {
 	/**
 	 * 根据指定的字段，从查询结果中取得一个pair关联数组
 	 *
-	 * @param string $keyField 用作数组key的字段
-	 * @param string $valueField 用作value的字段
+	 * @param string $key_field 用作数组key的字段
+	 * @param string $value_field 用作value的字段
 	 * @return array
 	 */
-	public function pairs($keyField, $valueField) {
+	 //???
+	public function pairs($key_field, $value_field) {
 		$result = $this->find();
 		$ret = array();
-		foreach ($result as $item) {
-			if ($keyField == null || !isset($item->$valueField)) {
-				$ret[] = $item->$valueField;
+		foreach ($result as $row) {
+			if ($key_field == null || !isset($row[$key_field])) {
+				$ret[] = $row[$value_field];
 			} else {
-				$key = $item->$keyField;
-				$val = $item->$valueField;
+				$key = $row[$key_field];
+				$val = $row[$value_field];
 				$ret[$key] = $val;
 			}
 			
@@ -119,15 +120,16 @@ class Query {
 	/**
 	 * 获取全部数据,结果是以数据行中指定的字段为key的关联数组
 	 *
-	 * @param string $keyField 作为key的字段
+	 * @param string $key 作为key的字段
 	 * @return array
 	 */
-	public function dict($keyField) {
+	  //???
+	public function dict($key_field) {
 		$result = $this->find();
 		$ret = array();
-		foreach ($result as $item) {
-			$key = $item->$keyField;
-			$ret[$key] = $item;
+		foreach ($result as $row) {
+			$key = $row[$key_field];
+			$ret[$key] = $row;
 		}
 		return $ret;
 	}
