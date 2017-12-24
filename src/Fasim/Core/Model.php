@@ -6,9 +6,10 @@
 namespace Fasim\Core;
 
 
-use \Fasim\Db\Query;
-use \Fasim\Db\DBFactory;
-use \Fasim\Facades\Cache;
+use Fasim\Db\Query;
+use Fasim\Db\DBFactory;
+use Fasim\Facades\Cache;
+use Fasim\Facades\Config as Cfg;
 
 /**
  * SLModel 模型基类
@@ -29,11 +30,16 @@ class Model {
 
 	private $returnIdKey = null;
 
+	private static $tablePrefix = null;
+
 	public function __construct() {
 	}
 
 	public function getTableName() {
-		return $this->tableName;
+		if (self::$tablePrefix === null) {
+			self::$tablePrefix = Cfg::get('database.table_prefix', '');
+		}
+		return self::$tablePrefix.$this->tableName;
 	}
 
 	public function getPrimaryKey() {
@@ -55,7 +61,7 @@ class Model {
 		}
 		if ($this->_isNew) {
 			$data = $this->getUpdates();
-			$insertId = self::db($this)->insert($this->tableName, $data, true);
+			$insertId = self::db($this)->insert($this->getTableName(), $data, true);
 			if ($this->returnIdKey != null) {
 				$rik = $this->returnIdKey;
 				$this->returnIdKey = null;
@@ -78,7 +84,7 @@ class Model {
 				$where[$pk] = $this->_data[$pk];
 			}
 			//print_r($updates);
-			self::db($this)->update($this->tableName, $where, $updates);
+			self::db($this)->update($this->getTableName(), $where, $updates);
 			$this->deleteCache();
 			$this->onUpdate();
 			//todo: 触发child model onUpdate
@@ -142,7 +148,7 @@ class Model {
 		foreach ($primaryKeys as $pk) {
 			$where[$pk] = $this->_data[$pk];
 		}
-		self::db($this)->delete($this->tableName, $where);
+		self::db($this)->delete($this->getTableName(), $where);
 		$this->onDelete();
 		$this->deleteCache();
 	}
@@ -156,7 +162,7 @@ class Model {
 		foreach ($primaryKeys as $pk) {
 			$pkValues[] = $this->_data[$pk];
 		}
-		$cacheKey = $this->tableName . '_' . implode('_', $pkValues);
+		$cacheKey = $this->getTableName() . '_' . implode('_', $pkValues);
 		Cache::delete($cacheKey);
 	}
 
@@ -542,7 +548,7 @@ class Model {
 			//数量不对
 			return null;
 		}
-		$cacheKey = $m->tableName . '_' . implode('_', $args);
+		$cacheKey = $m->getTableName() . '_' . implode('_', $args);
 		$result = Cache::get($cacheKey);
 		if ($result === false) {
 			$query = new Query(get_class($m));
@@ -580,12 +586,12 @@ class Model {
 
 	public static function updateMany($where, $updates) {
 		$m = new static();
-		static::db()->update($m->tableName, $where, $updates);
+		static::db()->update($m->getTableName(), $where, $updates);
 	}
 	
 	public static function deleteMany($where) {
 		$m = new static();
-		static::db()->delete($m->tableName, $where);
+		static::db()->delete($m->getTableName(), $where);
 	}
 			
 	

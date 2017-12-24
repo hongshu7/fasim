@@ -15,7 +15,6 @@ use Fasim\Facades\Config;
  */
 class Query {
 	private $data = array('table' => '', 'fields' => '', 'where' => array(), 'sort' => array(), 'limit' => 0, 'offset' => 0);
-	private $tablePrefix = '';
 	private $modelClass = '';
 	/**
 	 * 构造函数
@@ -24,7 +23,6 @@ class Query {
 	 *        	表名
 	 */
 	public function __construct($modelClass) {
-		$this->tablePrefix = Config::get('database.table_prefix');
 		$this->modelClass = '\\' . $modelClass;
 	}
 
@@ -144,7 +142,7 @@ class Query {
 		switch ($name) {
 			case 'from':
 			case 'collection':
-				$this->data['table'] = $this->tablePrefix . $value;
+				$this->data['table'] = $value;
 				break;
 			case 'select':
 				$this->data['fields'] = $value;
