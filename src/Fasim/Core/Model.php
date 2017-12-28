@@ -435,6 +435,14 @@ class Model {
 		return $value;
 	}
 
+	public function load($source, $allowExternalKey=false) {
+		foreach ($source as $k => $v) {
+			if ($allowExternalKey || isset($this->schema[$k])) {
+				$this->$k = $v;
+			}
+		}
+	}
+
 	public function fromArray($source) {
 		//todo:check schema
 		//fixed objectid
@@ -443,6 +451,9 @@ class Model {
 				$v = new \MongoDB\BSON\ObjectID($v);
 			}
 		}
+		//todo: $this->setDisableRecord();
+		//todo: $this->$k = $v;
+		//todo: $this->setEnableRecord();
 		$this->_data = $source;
 		$this->setNotNew();
 		return $this;
