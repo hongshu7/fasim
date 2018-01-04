@@ -61,7 +61,7 @@ class Router {
 			$matched = $domains['__default__'];
 			unset($domains['__default__']);
 		}
-		if (!empty($domains)) {
+		if (!empty($domains) && isset($_SERVER['HTTP_HOST'])) {
 			$host = $_SERVER['HTTP_HOST'];
 			foreach ($domains as $domain => $value) {
 				$domain = preg_replace('/![\*\?\:\w\.]/', '', $domain);

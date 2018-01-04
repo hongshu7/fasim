@@ -209,19 +209,25 @@ class Form {
 		return new FormSelect($key, $options);
 	}
 
-	public static function newUpload($key='') {
-		return new FormUpload($key);
+	public static function newImage($key='') {
+		return new FormImage($key);
+	}
+
+	public static function newImages($key='') {
+		return new FormImages($key);
 	}
 
 	public static function newTextarea($key='') {
 		return new FormTextarea($key);
 	}
 
+	public static function newRichText($key='') {
+		return new FormRichText($key);
+	}
+
 	public static function newButton($name='') {
 		return new FormButton($name);
 	}
-
-
 
 }
 
@@ -431,40 +437,10 @@ class FormHidden extends FormValue {
 
 }
 
-class FormValueStyle extends FormValue {
-	public $style = 'input-xlarge';
+class FormGroup extends FormValue {
+	
 	public $remark = '';
-
-	public function mini() {
-		$this->style = 'input-small';
-		return $this;
-	}
-
-	public function small() {
-		$this->style = 'input-small';
-		return $this;
-	}
-
-	public function medium() {
-		$this->style = 'input-medium';
-		return $this;
-	}
-
-	public function large() {
-		$this->style = 'input-large';
-		return $this;
-	}
-
-	public function xLarge() {
-		$this->style = 'input-xlarge';
-		return $this;
-	}
-
-	public function xxLarge() {
-		$this->style = 'input-xxlarge';
-		return $this;
-	}
-
+	
 	public function remark($remark) {
 		$this->remark = $remark;
 		return $this;
@@ -493,6 +469,192 @@ class FormValueStyle extends FormValue {
 	}
 }
 
+class FormImages extends FormGroup {
+	public $maxCount;
+	public function maxCount($maxCount) {
+		$this->maxCount = $maxCount;
+	}
+
+	public function renderInput() {
+		$fileId = 'i_'.$this->key;
+		$html = "<input type=\"hidden\" id=\"{$fileId}\" name=\"n_{$this->key}\" value=\"{$this->value}\" /> \n";
+		$fileListId = 'fileList_'.$this->key;
+		$filePickerId = 'filePicker_'.$this->key;
+		$images = empty($this->value) ? [] : explode(';', $this->value);
+		$html .= '<div class="webuploader clearfix">'."\n";
+		$html .= '<div id="'.$fileListId.'" class="uploader-list">'."\n";
+		foreach ($images as $image) {
+			$html .= '<div class="image-item"><img src="'.$image.'" /><i class="fa fa-close"></i></div>'."\n";
+		}
+		$html .= '</div>'."\n";
+		$html .= '<div id="'.$filePickerId.'" class="image-upload"><i class="fa fa-plus fa-3x"></i><br />上传图片</div>'."\n";
+		$html .= '</div>'."\n";
+		$html .= <<<EOT
+<script type="text/javascript">
+$('body').ready(function(){
+	var maxCount = {$this->maxCount};
+	var uploader = WebUploader.create({
+		auto: true,
+		server: '/attachment/upload',
+		pick: '#{$filePickerId}',
+		accept: {
+			title: '上传图片',
+			extensions: 'gif,jpg,jpeg,png',
+			mimeTypes: 'image/*'
+		}
+	});
+	function checkCount() {
+		var items = $('#{$fileListId} .image-item');
+		$('#{$filePickerId}').toggle(items.length < maxCount);
+	}
+	checkCount();
+	function removeItem(btn) {
+		var item = $(btn).closest('div');
+		var index = $('#{$fileListId} .image-item').index(item);
+		item.remove();
+		var value = $('#{$fileId}').val().split(';');
+		value.splice(index, 1);
+		$('#{$fileId}').val(value.join(';'));
+		checkCount();
+	}
+	$('#{$fileListId} .image-item i').click(function(){
+		removeItem(this);
+	});
+	uploader.on('fileQueued', function( file ) {
+		var li = $(
+				'<div id="' + file.id + '" class="image-item">' +
+					'<img>' +
+					'<i class="fa fa-close"></i>' +
+				'</div>'
+				),
+			img = li.find('img');
+		$('#{$fileListId}').append(li);
+		checkCount();
+		li.find('i').click(function(){
+			removeItem(this);
+		});
+		uploader.makeThumb(file, function( error, src ) {
+			if ( error ) {
+				img.replaceWith('<span>不能预览</span>');
+				return;
+			}
+			img.attr( 'src', src );
+		}, 160, 160 );
+	});
+	uploader.on('uploadProgress', function( file, percentage ) {
+		var li = $( '#'+file.id ), percentDiv = li.find('.progress span');
+		if ( !percentDiv.length ) {
+			percentDiv = $('<p class="progress"><span></span></p>').appendTo( li ).find('span');
+		}
+		percentDiv.css('width', percentage * 100 + '%' );
+	});
+	function showError(fileId, msg) {
+		console.log(fileId);
+		var li = $('#'+fileId), errorDiv = li.find('p.error');
+		if ( !errorDiv.length ) {
+			errorDiv = $('<p class="error"></p>').appendTo( li );
+		}
+		errorDiv.text(msg);
+	}
+	uploader.on('uploadSuccess', function( file, response ) {
+		//$( '#'+file.id ).addClass('upload-state-done');
+		if (typeof response == 'object') {
+			if (response.error == 0) {
+				var value = $('#{$fileId}').val();
+				if (value != '') {
+					value = value + ';' + response.url;
+				} else {
+					value = response.url;
+				}
+				$('#{$fileId}').val(value);
+			} else {
+				showError(file.id, response.message);
+			}
+		} else {
+			showError(file.id, '上传失败');
+		}
+	});
+	uploader.on('uploadError', function( file ) {
+		showError(file.id, '上传失败');
+	});
+	uploader.on('uploadComplete', function( file ) {
+		$( '#'+file.id ).find('.progress').remove();
+	});
+});
+</script>
+EOT;
+		return $html;
+	}
+}
+
+class FormImage extends FormImages {
+	public function renderInput() {
+		$this->maxCount(1);
+		return parent::renderInput();
+	}
+}
+
+class FormValueStyle extends FormGroup {
+	public $classStyle = 'input-xlarge';
+	public $styles = [];
+
+	public function mini() {
+		$this->classStyle = 'input-small';
+		return $this;
+	}
+
+	public function small() {
+		$this->classStyle = 'input-small';
+		return $this;
+	}
+
+	public function medium() {
+		$this->classStyle = 'input-medium';
+		return $this;
+	}
+
+	public function large() {
+		$this->classStyle = 'input-large';
+		return $this;
+	}
+
+	public function xLarge() {
+		$this->classStyle = 'input-xlarge';
+		return $this;
+	}
+
+	public function xxLarge() {
+		$this->classStyle = 'input-xxlarge';
+		return $this;
+	}
+
+	public function getStyle() {
+		$style = '';
+		if (!empty($this->styles)) {
+			$style = ' style="';
+			foreach ($this->styles as $k => $v) {
+				$style .= "$k:$v;";
+			}
+			$style .= '"';
+		}
+		return $style;
+	}
+
+	public function width($width) {
+		$this->styles['width'] = $width + 'px';
+		return $this;
+	}
+
+	public function height($height) {
+		$this->styles['height'] = $height + 'px';
+		return $this;
+	}
+	public function style($name, $value) {
+		$this->styles[$name] = $value;
+		return $this;
+	}
+}
+
 class FormText extends FormValueStyle {
 	public $placeholder = '';
 
@@ -502,8 +664,9 @@ class FormText extends FormValueStyle {
 	}
 
 	public function renderInput() {
+		$style = $this->getStyle();
 		$readonly = $this->readonly ? ' readonly="readonly"' : '';
-		return "<input id=\"i_{$this->key}\" type=\"text\" name=\"n_{$this->key}\" placeholder=\"{$this->placeholder}\" value=\"{$this->value}\" class=\"{$this->style}\"{$readonly} /> \n";
+		return "<input id=\"i_{$this->key}\" type=\"text\" name=\"n_{$this->key}\" placeholder=\"{$this->placeholder}\" value=\"{$this->value}\" class=\"{$this->classStyle}\"{$style}{$readonly} /> \n";
 	}
 
 
@@ -511,24 +674,34 @@ class FormText extends FormValueStyle {
 }
 
 class FormTextarea extends FormText {
-	private $height = 60;
-	public function height($height) {
-		$this->height = $height;
-		return $this;
-	}
 	public function renderInput() {
+		$style = $this->getStyle();
 		$readonly = $this->readonly ? ' readonly="readonly"' : '';
-		return "<textarea id=\"i_{$this->key}\" type=\"text\" name=\"n_{$this->key}\" placeholder=\"{$this->placeholder}\"  class=\"{$this->style}\"  style=\"height:{$this->height}px\"{$readonly}>{$this->value}</textarea> \n";
-
+		return "<textarea id=\"i_{$this->key}\" type=\"text\" name=\"n_{$this->key}\" placeholder=\"{$this->placeholder}\"  class=\"{$this->classStyle}\"{$style}{$readonly}>{$this->value}</textarea> \n";
 	}
 }
 
-class FormUpload extends FormText {
-
+class FormRichText extends FormTextarea {
 	public function renderInput() {
+		if (!isset($this->styles['width'])) {
+			$this->style('width', '100%');
+		}
+		if (!isset($this->styles['height'])) {
+			$this->style('height', '500px');
+		}
 		$html = parent::renderInput();
-		$id = 'i_'.$this->key;
-		$html .= '<button class="btn" style="margin-left:5px;" type="button" onclick="openUploadModel(\'#' . $id . '\')" >上传图片</button>';
+		$html .= <<<EOT
+<script type="text/javascript">
+var editor_{$this->key};
+$('body').ready(function() {
+	KindEditor.ready(function(K) {
+		editor_{$this->key} = K.create('#i_{$this->key}', {
+			allowFileManager : false
+		});
+	});
+});
+</script>
+EOT;
 		return $html;
 	}
 }
@@ -573,8 +746,9 @@ class FormSelect extends FormValueStyle {
 	}
 
 	public function renderInput() {
+		$style = $this->getStyle();
 		$readonly = $this->readonly ? ' readonly="readonly"' : '';
-		$html = "<select id=\"i_{$this->key}\" name=\"n_{$this->key}\" class=\"{$this->style}\"{$readonly}> \n";
+		$html = "<select id=\"i_{$this->key}\" name=\"n_{$this->key}\" class=\"{$this->classStyle}\"{$style}{$readonly}> \n";
 		foreach ($this->options as $option) {
 			$selected = $this->value == $option['value'] ? ' selected="selected"' : '';
 			$html .= "<option value=\"{$option['value']}\"{$selected}>{$option['name']}</option>\n";
