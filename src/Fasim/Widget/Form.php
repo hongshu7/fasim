@@ -229,10 +229,44 @@ class Form {
 		return new FormButton($name);
 	}
 
+	public static function newHtml($html='') {
+		return new FormHtml($html);
+	}
+
+	public static function newScript($html='') {
+		return new FormScript($html);
+	}
+
 }
 
 interface FormControl {
 	function render();
+}
+
+class FormHtml implements FormControl {
+	public $html = '';
+
+	public function __construct($html='') {
+		$this->html($html);
+	}
+
+	public function html($html='') {
+		$this->html = $html;
+		return $this;
+	}
+
+	public function render() {
+		return $this->html;
+	}
+}
+
+class FormScript extends FormHtml {
+	public function render() {
+		$html = '<script type="text/javascript">'."\n";
+		$html .= $this->html."\n";
+		$html .= '</script>'."\n";
+		return $html;
+	}
 }
 
 abstract class FormValue implements FormControl {

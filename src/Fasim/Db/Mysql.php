@@ -107,7 +107,7 @@ class Mysql implements IDB {
 	}
 
 	public function delete($table, $where) {
-		$sql = $this->getDeleteSql($data, $where);
+		$sql = $this->getDeleteSql($table, $where);
 		return $this->executeNonQuery($sql);
 	}
 	
@@ -334,7 +334,7 @@ class Mysql implements IDB {
 			if (is_array($order)) {
 				$and = '';
 				foreach ($order as $key=>$val) {
-					$sql .= $key.' '.($val == 'DESC' ? 'DESC' : 'ASC');
+					$sql .= $and.'`'.$key.'` '.($val == 'DESC' ? 'DESC' : 'ASC');
 					$and = ',';
 				}
 			} else if (is_string($order)) {
