@@ -61,7 +61,7 @@ class Router {
 			$matched = $domains['__default__'];
 			unset($domains['__default__']);
 		}
-		if (!empty($domains) && isset($_SERVER['HTTP_HOST'])) {
+		if (!empty($domains)) {
 			$host = $_SERVER['HTTP_HOST'];
 			foreach ($domains as $domain => $value) {
 				$domain = preg_replace('/![\*\?\:\w\.]/', '', $domain);
@@ -158,17 +158,17 @@ class Router {
 			if ($ca{0} == '/') {
 				$ca = substr($ca, 1);
 			}
-			if (substr($ca, -1) == '/') {
-				$ca = substr($ca, 0, -1);
-			}
 
 			$p = explode('/', $ca);
-			if (count($p) == 2) {
-				//add empty module
-				array_splice($p, 0, 0, '');
+			while (count($p) < 3) {
+				$p[] = '';
 			}
+			list($c, $a) = $p;
 
-			list($m, $c, $a) = $p;
+			$m = '';
+			if (in_array($c, $this->modules)) {
+				list($m, $c, $a) = $p;
+			}
 
 			$this->routers[] = array(
 				'uri' => $uri,

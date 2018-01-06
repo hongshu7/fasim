@@ -142,10 +142,6 @@ class Application {
 		$timezone = $this->make('config')->get('timezone', 'Asia/Shanghai');
 		date_default_timezone_set($timezone);
 
-
-		//reset $_GET
-		$_GET = $this->make('router')->getQueryArray();
-		
 		//设置调试模式
 		$debugMode = $this->make('config')->get('debug') === true;
 		$this->setDebugMode($debugMode);
@@ -258,6 +254,14 @@ class Application {
 
 			//触发uri路由
 			$this->make('router')->dispatch();
+
+			//reset GET
+			$_GET = $this->make('router')->getQueryArray();
+			foreach ($_GET as $ik => $iv) {
+				if (is_string($ik)) {
+					$_REQUEST[$ik] = $iv;
+				}
+			}
 
 			$this->runControllerAction();
 

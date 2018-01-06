@@ -279,7 +279,7 @@ abstract class FormValue implements FormControl {
 	public $rules = [];
 	
 	public $min = 0;
-	public $max = 1000;
+	public $max = 10000;
 
 	public $errorWord = '';
 	public $errorType = '';
