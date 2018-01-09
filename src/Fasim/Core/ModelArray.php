@@ -87,7 +87,34 @@ class ModelArray implements  \IteratorAggregate, \ArrayAccess, \Countable, \Seri
 			$array[] = $m->toArray($filter, $exclude);
 		}
 		return $array;
-	}
+    }
+
+    public function toMap($keyField, $valueField = null) {
+        $map = [];
+        foreach ($this->models as $m) {
+            if (isset($m->$keyField)) {
+                $val = $m;
+                if (is_string($valueField)) {
+                    $val = isset($m->$valueField) ? $m->$valueField : null;
+                }
+                $map[$m->$keyField] =  $val;
+            }
+        }
+        return $map;
+    }
+    
+    public function toOptions($nameKey = 'name', $valueKey = 'value') {
+        $options = [];
+        foreach ($this->models as $m) {
+            if (isset($m->$nameKey) && isset($m->$valueKey)) {
+                $options[] = [
+                    'name' => $m->$nameKey,
+                    'value' => $m->$valueKey
+                ];
+            }
+        }
+        return $options;
+    }
 
 
 }
