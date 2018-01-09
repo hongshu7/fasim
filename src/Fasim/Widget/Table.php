@@ -2,7 +2,7 @@
 namespace Fasim\Widget;
 
 use Fasim\Facades\Config;
-use Fasim\Facades\Request;
+use Fasim\Facades\Input;
 use Fasim\Library\Pager;
 
 class Table {
@@ -17,8 +17,7 @@ class Table {
 	private $pager = null;
 	
 	public function __construct() {
-		$page = Request::intval(('page'));
-
+		$page = Input::request('page')->intval();
 		$this->pager = new Pager();
 		$this->pager->pageSize = 20;
 		$this->pager->style = Pager::Bootstrap;

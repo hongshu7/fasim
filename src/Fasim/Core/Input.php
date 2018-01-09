@@ -18,6 +18,10 @@ class InputItem  {
 		return $this->rawValue;
 	}
 
+	public function exists() {
+		return $this->rawValue === null;
+	}
+
 	public function trim() {
 		$value = '';
 		if ($this->rawValue !== null) {
@@ -55,81 +59,12 @@ class InputItem  {
 	}
 }
 
-class InputCollection implements \IteratorAggregate, \ArrayAccess, \Serializable {
-	private $_data = array();
-	private $_nullItem = null;
-	public function __construct($data) {
-		foreach ($data as $key => $val) {
-			$item = new InputItem($val);
-			$this->_data[$key] = $item;
-		}
-		$this->_nullItem = new InputItem(null); 
-	}
-
-	public function getIterator() {
-        return new \ArrayIterator($this->_data);
-    }
-
-	public function offsetSet($offset, $value) {
-        if (is_null($offset)) {
-            $this->_data[] = $value;
-        } else {
-            $this->_data[$offset] = $value;
-        }
-    }
-
-    public function offsetExists($offset) {
-        return isset($this->_data[$offset]);
-    }
-
-    public function offsetUnset($offset) {
-        unset($this->_data[$offset]);
-    }
-
-    public function offsetGet($offset) {
-        return isset($this->_data[$offset]) ? $this->_data[$offset] : $this->_nullItem;
-    }
-
-	public function serialize() {
-		$serializes = [];
-		foreach ($data as $key => $val) {
-			$serializes[$key] = $val->raw();
-		}
-        return serialize($serializes);
-	}
-	
-    public function unserialize($data) {
-		$unserializes = unserialize($data);
-		$this->_data = [];
-		foreach ($unserializes as $key => $val) {
-			$item = new InputItem($val);
-			$this->_data[$key] = $item;
-		}
-	}
-	
-	public function __get($key) {
-		return $this->offsetGet($key);
-	}
-
-}
-
 /**
  * @class Request
  * 输入类
  */
-class Input extends InputCollection {
-	/**
-	 * get data
-	 *
-	 * @var array
-	 */
-	public $get = array();
-	/**
-	 * post data
-	 *
-	 * @var array
-	 */
-	public $post = array();
+class Input {
+
 	/**
 	 * http referer
 	 *
@@ -164,16 +99,38 @@ class Input extends InputCollection {
 		$this->sanitizeGlobals();
 
 		//todo:filter get and post data
-		$this->get = new InputCollection($_GET);
-		$this->post = new InputCollection($_POST);
 		$request = array_merge($_GET, $_POST);
-		
-		parent::__construct($request);
 	}
 	
 	
 	public function isPost() {
 		return $_POST ? true : false;
+	}
+
+	public function get($index) {
+		$value = null;
+		if (isset($_GET[$index])) {
+			$value = $_GET[$index];
+		}
+		return new InputItem($value);
+	}
+
+	public function post($index) {
+		$value = null;
+		if (isset($_POST[$index])) {
+			$value = $_POST[$index];
+		}
+		return new InputItem($value);
+	}
+
+	public function request($index) {
+		$value = null;
+		if (isset($_POST[$index])) {
+			$value = $_POST[$index];
+		} else if (isset($_GET[$index])) {
+			$value = $_GET[$index];
+		}
+		return new InputItem($value);
 	}
 	
 	/**
