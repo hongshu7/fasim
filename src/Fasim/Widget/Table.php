@@ -303,6 +303,17 @@ class TextField extends Field {
 		return $this;
 	}
 
+	public function valueMap($map) {
+		$this->useSwitch = true;
+		foreach ($map as $c => $v) {
+			$this->cases[] = [
+				'c' => $c,
+				'v' => $v
+			];
+		}
+		return $this;
+	}
+
 	public function valueDefault($v) {
 		$this->useSwitch = true;
 		$this->default = $v;
