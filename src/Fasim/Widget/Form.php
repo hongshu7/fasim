@@ -217,6 +217,14 @@ class Form {
 		return new FormImages($key);
 	}
 
+	public static function newFile($key='') {
+		return new FormFile($key);
+	}
+
+	public static function newFiles($key='') {
+		return new FormFiles($key);
+	}
+
 	public static function newTextarea($key='') {
 		return new FormTextarea($key);
 	}
@@ -504,10 +512,12 @@ class FormGroup extends FormValue {
 }
 
 class FormImages extends FormGroup {
-	public $maxCount;
+	public $maxCount = 6;
+
 	public function maxCount($maxCount) {
 		$this->maxCount = $maxCount;
 	}
+
 
 	public function renderInput() {
 		$fileId = 'i_'.$this->key;
@@ -518,10 +528,10 @@ class FormImages extends FormGroup {
 		$html .= '<div class="webuploader clearfix">'."\n";
 		$html .= '<div id="'.$fileListId.'" class="uploader-list">'."\n";
 		foreach ($images as $image) {
-			$html .= '<div class="image-item"><img src="'.$image.'" /><i class="fa fa-close"></i></div>'."\n";
+			$html .= '<div class="file-item"><img src="'.$image.'" /><i class="fa fa-close"></i></div>'."\n";
 		}
 		$html .= '</div>'."\n";
-		$html .= '<div id="'.$filePickerId.'" class="image-upload"><i class="fa fa-plus fa-3x"></i><br />上传图片</div>'."\n";
+		$html .= '<div id="'.$filePickerId.'" class="file-upload-btn"><i class="fa fa-plus fa-3x"></i><br />上传图片</div>'."\n";
 		$html .= '</div>'."\n";
 		$html .= <<<EOT
 <script type="text/javascript">
@@ -532,31 +542,31 @@ $('body').ready(function(){
 		server: '/attachment/upload',
 		pick: '#{$filePickerId}',
 		accept: {
-			title: '上传图片',
-			extensions: 'gif,jpg,jpeg,png',
+			title: '上传文件',
+			extensions: '{$this->allowFiles},
 			mimeTypes: 'image/*'
 		}
 	});
 	function checkCount() {
-		var items = $('#{$fileListId} .image-item');
+		var items = $('#{$fileListId} .file-item');
 		$('#{$filePickerId}').toggle(items.length < maxCount);
 	}
 	checkCount();
 	function removeItem(btn) {
 		var item = $(btn).closest('div');
-		var index = $('#{$fileListId} .image-item').index(item);
+		var index = $('#{$fileListId} .file-item').index(item);
 		item.remove();
 		var value = $('#{$fileId}').val().split(';');
 		value.splice(index, 1);
 		$('#{$fileId}').val(value.join(';'));
 		checkCount();
 	}
-	$('#{$fileListId} .image-item i').click(function(){
+	$('#{$fileListId} .file-item i').click(function(){
 		removeItem(this);
 	});
 	uploader.on('fileQueued', function( file ) {
 		var li = $(
-				'<div id="' + file.id + '" class="image-item">' +
+				'<div id="' + file.id + '" class="file-item">' +
 					'<img>' +
 					'<i class="fa fa-close"></i>' +
 				'</div>'
@@ -622,6 +632,135 @@ EOT;
 }
 
 class FormImage extends FormImages {
+	public function renderInput() {
+		$this->maxCount(1);
+		return parent::renderInput();
+	}
+}
+
+class FormFiles extends FormGroup {
+
+	public $maxCount = 6;
+	public $allowFiles = 'doc,docx,xls,xlsx,ppt,pptx,txt,rar,zip,7z,html,htm,mp3,mov,mp4,avi';
+
+	public function maxCount($maxCount) {
+		$this->maxCount = $maxCount;
+	}
+
+	public function allowFiles($allowFiles) {
+		$this->allowFiles = $allowFiles;
+	}
+
+	public function renderInput() {
+		$fileId = 'i_'.$this->key;
+		$html = "<input type=\"hidden\" id=\"{$fileId}\" name=\"n_{$this->key}\" value=\"{$this->value}\" /> \n";
+		$fileListId = 'fileList_'.$this->key;
+		$filePickerId = 'filePicker_'.$this->key;
+		$files = empty($this->value) ? [] : explode(';', $this->value);
+		$html .= '<div class="webuploader clearfix files-with-name">'."\n";
+		$html .= '<div id="'.$fileListId.'" class="uploader-list">'."\n";
+		foreach ($files as $file) {
+			list($key, $name) = explode(',', $file, 2);
+			$ext = substr(strrchr($name, '.'), 1); 
+			$html .= '<div class="file-item"><span class="file-icon file-icon-'.$ext.'"></span><span class="file-name">'.$name.'</span><i class="fa fa-close"></i></div>'."\n";
+		}
+		$html .= '</div>'."\n";
+		$html .= '<div id="'.$filePickerId.'" class="file-upload-btn"><i class="fa fa-plus fa-3x"></i><br />上传文件</div>'."\n";
+		$html .= '</div>'."\n";
+		$html .= <<<EOT
+<script type="text/javascript">
+$('body').ready(function(){
+	var maxCount = {$this->maxCount};
+	var uploader = WebUploader.create({
+		auto: true,
+		server: '/attachment/upload?dir=auto',
+		pick: '#{$filePickerId}',
+		accept: {
+			title: '上传文件',
+			extensions: '{$this->allowFiles}',
+			//mimeTypes: 'image/*'
+		}
+	});
+	function checkCount() {
+		var items = $('#{$fileListId} .file-item');
+		$('#{$filePickerId}').toggle(items.length < maxCount);
+	}
+	checkCount();
+	function removeItem(btn) {
+		var item = $(btn).closest('div');
+		var index = $('#{$fileListId} .file-item').index(item);
+		item.remove();
+		var value = $('#{$fileId}').val().split(';');
+		value.splice(index, 1);
+		$('#{$fileId}').val(value.join(';'));
+		checkCount();
+	}
+	$('#{$fileListId} .file-item i').click(function(){
+		removeItem(this);
+	});
+	uploader.on('fileQueued', function( file ) {
+		var li = $(
+				'<div id="' + file.id + '" class="file-item">' +
+					'<span class="file-icon file-icon-' + file.ext + '"></span>' +
+					'<span class="file-name">' + file.name + '</span>' +
+					'<i class="fa fa-close"></i>' +
+				'</div>'
+				),
+			img = li.find('img');
+		$('#{$fileListId}').append(li);
+		checkCount();
+		li.find('i').click(function(){
+			removeItem(this);
+		});
+	});
+	uploader.on('uploadProgress', function( file, percentage ) {
+		var li = $( '#'+file.id ), percentDiv = li.find('.progress span');
+		if ( !percentDiv.length ) {
+			percentDiv = $('<p class="progress"><span></span></p>').appendTo( li ).find('span');
+		}
+		percentDiv.css('width', percentage * 100 + '%' );
+	});
+	function showError(fileId, msg) {
+		console.log(fileId);
+		var li = $('#'+fileId), errorDiv = li.find('p.error');
+		if ( !errorDiv.length ) {
+			errorDiv = $('<p class="error"></p>').appendTo( li );
+		}
+		errorDiv.text(msg);
+	}
+	uploader.on('uploadSuccess', function( file, response ) {
+		//$( '#'+file.id ).addClass('upload-state-done');
+		if (typeof response == 'object') {
+			if (response.error == 0) {
+				var value = $('#{$fileId}').val();
+				var item = response.url + ',' + file.name;
+				if (value != '') {
+					value = value + ';' + item;
+				} else {
+					value = item;
+				}
+				$('#{$fileId}').val(value);
+			} else {
+				showError(file.id, response.message);
+			}
+		} else {
+			showError(file.id, '上传失败');
+		}
+	});
+	uploader.on('uploadError', function( file ) {
+		showError(file.id, '上传失败');
+	});
+	uploader.on('uploadComplete', function( file ) {
+		$( '#'+file.id ).find('.progress').remove();
+	});
+});
+</script>
+EOT;
+		return $html;
+	}
+}
+
+class FormFile extends FormFiles {
 	public function renderInput() {
 		$this->maxCount(1);
 		return parent::renderInput();
