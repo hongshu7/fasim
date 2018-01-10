@@ -190,6 +190,7 @@ class Query {
 		if (count($args) == 2) {
 			$data = [$args[0] => $args[1]];
 		}
+		
 		if (is_array($data)) {
 			foreach ($data as $k => &$v){
 				if (is_string($v)) {
