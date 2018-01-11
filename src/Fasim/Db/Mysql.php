@@ -20,7 +20,7 @@ class Mysql implements IDB {
 	var $_conn = null;
 	var $_debug = null;
 	
-	function __construct($config, $uri){
+	function __construct($config, $uri) {
 		$this->_config = $config;
 	}
 	
@@ -28,6 +28,7 @@ class Mysql implements IDB {
 		/*if (!is_array($this->_config)) {
 			$this->_config = $this->parseDsn($this->_config);
 		}*/ // parse dsn at factory class
+		
 
 		$this->_debug = Config::get('debug');
 
@@ -41,7 +42,7 @@ class Mysql implements IDB {
 		$pconnect = isset($config['pconnect']) ? $config['pconnect'] : false;
 		$dbcharset = isset($config['charset']) ? $config['charset'] : 'utf8mb4';
 		
-		if(isset($config['port']) && !empty($config['port'])) {
+		if (isset($config['port']) && !empty($config['port'])) {
 			$dbhost .= ':' . intval($config['port']);
 		}
 		
@@ -49,10 +50,10 @@ class Mysql implements IDB {
 		if ($this->_conn->connect_errno) {
 			$this->halt('Failed to connect to MySQL server');
 		} else {
-			if($this->version() > '4.1') {
+			if ($this->version() > '4.1') {
 				$dbcharset = in_array(strtolower($dbcharset), array('gbk', 'big5', 'utf-8')) ? str_replace('-', '', $dbcharset) : 'utf8';
 				$serverset = $dbcharset ? 'character_set_connection='.$dbcharset.', character_set_results='.$dbcharset.', character_set_client=binary' : '';
-				if($this->version() > '5.0.1') {
+				if ($this->version() > '5.0.1') {
 					$serverset .=  (empty($serverset) ? '' : ',') . 'sql_mode=\'\'';
 				}
 				$serverset && $this->_conn->query("SET $serverset");
@@ -73,7 +74,7 @@ class Mysql implements IDB {
 		$sql = $this->getQuerySql($data);
 		$ret = array();
 		$result = $this->query($sql);
-		if ($result){
+		if ($result) {
 			while ($row = $result->fetch_assoc()) {
 				$ret[] = $row;
 			}
@@ -85,7 +86,7 @@ class Mysql implements IDB {
 		$sql = $this->getCountSql($table, $data);
 		$result = $this->query($sql);
 		$count = -1;
-		if ($result){
+		if ($result) {
 			if ($row = $result->fetch_row()) {
 				$count = intval($row[0]);
 			}
@@ -124,7 +125,7 @@ class Mysql implements IDB {
 	}
 
 	public function version() {
-		if(empty($this->_version)) {
+		if (empty($this->_version)) {
 			$this->_version = $this->_conn->server_version;
 		}
 		return $this->_version;
@@ -132,11 +133,11 @@ class Mysql implements IDB {
 	
 	
 	private function query($sql, $type = '') {
-		//echo $sql;
-		if(!is_resource($this->_conn)){ //|| !$this->_conn->ping()
+		// echo $sql, "<br />\n";
+		if ($this->_conn == null) {
 			$this->connect();
 		}
-		if(!($query = $this->_conn->query($sql))) {
+		if (!($query = $this->_conn->query($sql))) {
 			$this->halt('MySQL Query Error', $sql);
 		}
 		self::$querynum++;
@@ -148,7 +149,7 @@ class Mysql implements IDB {
 		//$error_no = $this->_conn->errno;
 		$message .= ': ' . is_resource($this->_conn) ? $this->_conn->error : 'Connect Fail';
 
-		if($this->_debug && trim($sql) != ''){
+		if ($this->_debug && trim($sql) != '') {
 			$message .= "<br />\nSQL: $sql";
 		}
 		throw new Exception($message, 1000);
@@ -173,7 +174,7 @@ class Mysql implements IDB {
 		$limit = '';
 		if ($data['limit'] > 0) {
 			$limit = intval($data['limit']);
-			if ($data['offset'] > 0){
+			if ($data['offset'] > 0) {
 				$limit = intval($data['offset']).','.intval($data['limit']);
 			}
 			$limit = 'limit '.$limit;
@@ -334,7 +335,7 @@ class Mysql implements IDB {
 			if (is_array($order)) {
 				$and = '';
 				foreach ($order as $key=>$val) {
-					$sql .= $and.'`'.$key.'` '.($val == 'DESC' ? 'DESC' : 'ASC');
+					$sql .= $and.'`'.$key.'` '.($val == -1 ? 'DESC' : 'ASC');
 					$and = ',';
 				}
 			} else if (is_string($order)) {
@@ -345,8 +346,8 @@ class Mysql implements IDB {
 	}
 
 
-	private function addslashes($params){
-   		if(is_array($params)){
+	private function addslashes($params) {
+   		if (is_array($params)) {
 			return array_map(array($this, 'addslashes'), $params);
 		}else{
 			return addslashes($params);
