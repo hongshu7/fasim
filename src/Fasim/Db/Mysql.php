@@ -133,7 +133,7 @@ class Mysql implements IDB {
 	
 	
 	private function query($sql, $type = '') {
-		// echo $sql, "<br />\n";
+		//echo $sql, "<br />\n";
 		if ($this->_conn == null) {
 			$this->connect();
 		}
@@ -234,6 +234,7 @@ class Mysql implements IDB {
 
 	public function getChildWhereSql($data) {
 		$and = '';
+		$sql = '';
 		foreach ($data as $key => $val) {
 			$result = '';
 			if ($key{0} == '$') {
@@ -319,13 +320,14 @@ class Mysql implements IDB {
 					$sval = '\''.addslashes($val).'\'';
 					$result = "$skey=$sval";
 				}
+				
 			}
 			if ($result) {
 				$sql .= $and . $result;
 				$and = " AND ";
 			}
-			return $sql;
 		}
+		return $sql;
 	}
 
 	public function getSortSql($order) {
