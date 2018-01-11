@@ -513,9 +513,14 @@ class FormGroup extends FormValue {
 
 class FormImages extends FormGroup {
 	public $maxCount = 6;
+	public $allowFiles = 'jpg,jpeg,gif,png';
 
 	public function maxCount($maxCount) {
 		$this->maxCount = $maxCount;
+	}
+
+	public function allowFiles($allowFiles) {
+		$this->allowFiles = $allowFiles;
 	}
 
 
@@ -543,7 +548,7 @@ $('body').ready(function(){
 		pick: '#{$filePickerId}',
 		accept: {
 			title: '上传文件',
-			extensions: '{$this->allowFiles},
+			extensions: '{$this->allowFiles}',
 			mimeTypes: 'image/*'
 		}
 	});
