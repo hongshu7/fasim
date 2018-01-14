@@ -15,7 +15,15 @@
     },
 	"autoload": {
         "psr-4": {
-            "Fasim\\": "src/Fasim"
+            "Fasim\\Cache\\": "src/Fasim/Cache",
+            "Fasim\\Core\\": "src/Fasim/Core",
+            "Fasim\\Db\\": "src/Fasim/Db",
+            "Fasim\\Event\\": "src/Fasim/Event",
+            "Fasim\\Facades\\": "src/Fasim/Facades",
+            "Fasim\\Library\\": "src/Fasim/Library",
+            "Fasim\\Log\\": "src/Fasim/Log",
+            "Fasim\\Session\\": "src/Fasim/Session",
+            "Fasim\\Support\\": "src/Fasim/Cache"
         },
         "files": [
             "src/Fasim/Support/helpers.php"

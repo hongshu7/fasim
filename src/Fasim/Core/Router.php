@@ -48,7 +48,10 @@ class Router {
 	public function init() {
 		//获取配置
 		
-		$this->modules = Cfg::get('modules');
+		$this->modules = Cfg::get('modules', null);
+		if (!is_array($this->modules)) {
+			$this->modules = [];
+		}
 
 		$wd = $this->getWebsiteDirectory();
 		$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
