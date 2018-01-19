@@ -2,7 +2,7 @@
     "name": "lhs168/fasim",
     "description": "a fast and simple framework",
     "type": "library",
-    "license": "GPL",
+    "license": "GPL-3.0-only",
     "authors": [
         {
             "name": "Kevin Lai",

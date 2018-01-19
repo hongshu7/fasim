@@ -91,7 +91,7 @@ class Pager {
 			$toPage = $this->page - 1;
 			$html .= "<a href=\"".str_replace('{page}', $toPage, $this->url)."\" rel=\"nofollow\" title=\"{$tips[1]}\">{$texts[1]}</a>";
 		} else if ($showExt) {
-			$html .= "<span title=\"{$tips[1]}\">…</span>";
+			$html .= "<span title=\"{$tips[1]}\">{$texts[1]}</span>";
 		}
 		//列页
 		if ($this->style == self::Popular && $s != 1) {
@@ -147,7 +147,7 @@ class Pager {
 			$html = str_replace('</span>', '</span></li>', $html);
 			$html = str_replace('<strong', '<li class="active"><span', $html);
 			$html = str_replace('</strong>', '</span></li>', $html);
-			$html = '<ul>' . $html . '</ul>';
+			$html = '<ul class="pagination">' . $html . '</ul>';
 		}
 
 		return $html;
