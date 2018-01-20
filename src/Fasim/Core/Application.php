@@ -88,7 +88,11 @@ class Application {
 	
 		//初始化事件调度器
 		$this->eventDispatcher = new \Fasim\Event\EventDispatcher($this);
-		set_error_handler('\\Fasim\\Core\\Exception::errorHandler', E_ERROR | E_PARSE | E_STRICT);
+		$E_FILTER = E_ALL ^ E_NOTICE ^ E_USER_NOTICE;
+		if (version_compare(phpversion(), '5.4.0', '<')) {
+			$E_FILTER = $E_FILTER | E_STRICT;
+		}
+		set_error_handler('\\Fasim\\Core\\Exception::errorHandler', $E_FILTER);
 
 	}
 
