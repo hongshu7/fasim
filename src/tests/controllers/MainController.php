@@ -6,6 +6,9 @@ use Fasim\Core\ModelArray;
 use Fasim\Facades\Cache;
 use Fasim\Library\Pager;
 use App\Model\UserModel;
+
+use Fasim\Facades\Log;
+
 /**
  * @class MainController
  * 主控制器
@@ -13,7 +16,8 @@ use App\Model\UserModel;
 class MainController extends Controller {
 
 	public function doDefault() {
-		UserModel::test();
+		//UserModel::test();
+		Log::info('good thing');
 		echo 'hello, sir!';
 	}
 

@@ -39,6 +39,12 @@ if (file_exists(APP_CONFIG_PATH . 'constants.php')) {
 }
 
 use Fasim\Cache\Cache;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Handler\SyslogHandler;
+use Monolog\Handler\ErrorLogHandler;
+use Monolog\Handler\AbstractSyslogHandler;
 
 /**
  * SLApplication 创建应用的基本类
@@ -65,6 +71,8 @@ class Application {
 	 * @var array
 	 */
 	private $plugins;
+
+	private $configLoggerFunc;
 
 	private static $instance;
 	public static function getInstance() {
@@ -172,6 +180,57 @@ class Application {
 		$this->singleton('cache', function($app) {
 			return new Cache();
 		});
+		$this->singleton('log', function($app) {
+			
+			$cfg = $this->make('config')->get('logs', ['type' => 'daily']);
+			$channel = isset($cfg['channel']) ? $cfg['channel'] : 'fasim';
+			$logger = new Logger('fasim');
+			if ($this->configLoggerFunc != null) {
+				call_user_func($this->configLoggerFunc, $logger);
+				return $logger;
+			}
+			$handler = null;
+			$level = strtoupper(isset($cfg['level']) ? $cfg['level'] : 'warning');
+			$levels = Logger::getLevels();
+			$intLevel = isset($levels[$level]) ? $levels[$level] : Logger::WARNING;
+			$path = '';
+			if ($type != 'syslog' && $type != 'errorlog') {
+				$path = isset($cfg['path']) ? $cfg['path'] : 'logs/log.log';
+				$external = isset($cfg['external']) ? boolval($cfg['external']) : false;
+				if (!$external)  {
+					$path = APP_DATA_PATH . $path;
+				}
+				$dir = dirname($path);
+				if (!is_dir($dir)) {
+					mkdir($dir, 0777, true);
+				}
+			}
+			switch ($cfg['type']) {
+				case 'single':
+					$handler = new StreamHandler($path, $intLevel);
+					break;
+				case 'syslog':
+					$ident = isset($cfg['ident']) ? $cfg['ident'] : 'fasim';
+					$facility = isset($cfg['facility']) ? $cfg['facility'] : LOG_USER;
+					//AbstractSyslogHandler
+					$handler = new SyslogHandler($ident, $facility, $intLevel);
+					break;
+				case 'errorlog':
+					$messageType = isset($cfg['message_type']) ? $cfg['message_type'] : 'system';
+					if ($messageType != 'api') {
+						$messageType = 'system';
+					}
+					$expandNewlines = isset($cfg['expand_newlines']) ? $cfg['expand_newlines'] : false;
+					$handler = new ErrorLogHandler($messageType, $intLevel, $expandNewlines);
+					break;
+				default:
+					$maxFiles = intval(isset($cfg['max_files']) ? $cfg['max_files'] : '0');
+					$handler = new RotatingFileHandler($path, $maxFiles, $intLevel);
+					break;
+			}
+			$logger->pushHandler($handler);
+			return $logger;
+		});
 		$this->singleton('security', function($app) {
 			return new Security();
 		});
@@ -212,6 +271,9 @@ class Application {
 		}
 	}
 
+	public function configLogger($func) {
+		$this->configLoggerFunc = $func;
+	}
 
 	/**
 	 * 设置调试模式
@@ -287,15 +349,13 @@ class Application {
 
 
 			$debug = $this->make('config')->get('debug') === true;
-			$traceString = $exception->getTraceAsString();
 			$traceString = str_replace("\n", "<br />\n", $traceString);
 			$error = [
 				'code' => $exception->getCode(),
 				'message' => $exception->getMessage(),
 				'file' => $exception->getFile(),
 				'line' => $exception->getLine(),
-				'trace' => $exception->getTrace(),
-				'traceString' => $traceString,
+				'trace' => $exception->getBackTrace()
 			];
 			$data = [
 				'error' => $error,

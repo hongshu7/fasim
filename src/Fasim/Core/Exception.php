@@ -33,14 +33,17 @@ class Exception extends \Exception {
 			$this->line = $errLine;
 		}
 
+		$this->backtrace = $this->getTrace();
 		if ($exclude) {
-			$trace = $this->getTrace();
+			$trace = $this->backtrace;
 			unset($trace[0]);
 			ksort($trace);
 			$this->backtrace = $trace;
 		}
+	}
 
-		//$this->logError();
+	public function getBacktrace() {
+		return $this->backtrace;
 	}
 
 	public static function errorHandler($errno, $errstr, $errfile, $errline) {

@@ -57,7 +57,7 @@ span.func {
 
 <body>
 	<div id="content">
-		<h1>{{ error.code }} Server Error</h1>
+		<h1>Server Error, Code: {{ error.code }}</h1>
 		<div class="msg">
 			{{ error.message }}
 		</div>
@@ -77,8 +77,17 @@ span.func {
 						</span>
 						<span class="func">
 							{% if line.class %}{{ line.class }}{{ line.type }}{% endif %}{{ line.function }}(
-								{% if line.args %}
-									'{{ line.args | join("', '") }}'
+								{% if line.args is iterable %}
+									{% for item in line.args %}
+										{{ loop.first ? '' : ',' }}
+										{% if item is class %}
+										class:{{ item | className }}
+										{% elseif item is iterable %}
+										[array]
+										{% else %}
+										'{{ item }}'
+										{% endif %}
+									{% endfor %}
 								{% endif %}
 							)
 						

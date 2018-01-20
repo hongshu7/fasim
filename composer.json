@@ -11,7 +11,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "twig/twig": "^1.33.2"
+        "twig/twig": "^1.33.2",
+        "monolog/monolog": "^1.23.0"
     },
 	"autoload": {
         "psr-4": {
@@ -23,7 +24,8 @@
             "Fasim\\Library\\": "src/Fasim/Library",
             "Fasim\\Log\\": "src/Fasim/Log",
             "Fasim\\Session\\": "src/Fasim/Session",
-            "Fasim\\Support\\": "src/Fasim/Cache"
+            "Fasim\\Support\\": "src/Fasim/Support",
+            "Fasim\\View\\": "src/Fasim/View"
         },
         "files": [
             "src/Fasim/Support/helpers.php"

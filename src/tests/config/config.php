@@ -1,8 +1,9 @@
 <?php
 return array(
 	'logs' => array(
-		'path' => 'logs/log',
-		'type' => 'file'
+		'type' => 'daily',
+		'path' => 'logs/log.log',
+		'level' => 'debug'
 	),
 	'cache' => array(
 		'type' => 'memcached',

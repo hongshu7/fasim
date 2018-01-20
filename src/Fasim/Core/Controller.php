@@ -5,6 +5,8 @@
  */
 namespace Fasim\Core;
 
+use Fasim\View\TwigClassExtension;
+
 /**
  * SLController 控制器基类
  */
@@ -86,6 +88,7 @@ class Controller {
 			'charset' => $this->config->get('charset', 'utf-8'),
 			'debug' => $this->config->get('debug', false)
 		));
+		$this->view->addExtension(new TwigClassExtension());
 
 		
 		
