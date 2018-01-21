@@ -19,7 +19,7 @@ class InputItem  {
 	}
 
 	public function exists() {
-		return $this->rawValue === null;
+		return $this->rawValue !== null;
 	}
 
 	public function trim() {
@@ -30,7 +30,15 @@ class InputItem  {
 		return trim($value);
 	}
 
-	public function intval($index = '', $default = 0) {
+	public function stringval($default = '') {
+		$value = $default;
+		if ($this->rawValue !== null) {
+			$value = $this->rawValue . '';
+		}
+		return $value;
+	}
+
+	public function intval($default = 0) {
 		$value = $default;
 		if ($this->rawValue !== null) {
 			$value = $this->rawValue;
@@ -38,7 +46,7 @@ class InputItem  {
 		return intval($value);
 	}
 	
-	public function floatval($index = '', $default = 0) {
+	public function floatval($default = 0) {
 		$value = $default;
 		if ($this->rawValue !== null) {
 			$value = $this->rawValue;
@@ -46,7 +54,7 @@ class InputItem  {
 		return floatval($value);
 	}
 
-	public function doubleval($index = '', $default = 0) {
+	public function doubleval($default = 0) {
 		$value = $default;
 		if ($this->rawValue !== null) {
 			$value = $this->rawValue;
