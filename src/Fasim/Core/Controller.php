@@ -41,14 +41,14 @@ class Controller {
 	public $config;
 	/**
 	 * 系统输入类
-	 * @var Request
+	 * @var Input
 	 */
-	public $request;
+	public $input;
 	/**
 	 * 系统输出类
-	 * @var Response
+	 * @var Output
 	 */
-	public $response;
+	public $output;
 	/**
 	 * Session类
 	 * @var Session
@@ -73,9 +73,6 @@ class Controller {
 
 		$this->input = $this->app->make('input');
 		$this->output = $this->app->make('output');
-		//兼容旧的
-		$this->request = $this->input;
-		$this->response = $this->output;
 
 		$this->session = \Fasim\Session\SessionFactory::getSession();
 

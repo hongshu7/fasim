@@ -234,13 +234,6 @@ class Application {
 		$this->singleton('security', function($app) {
 			return new Security();
 		});
-		//兼容
-		$this->singleton('request', function($app) {
-			return $this->make('input');
-		});
-		$this->singleton('response', function($app) {
-			return $this->make('output');
-		});
 		
 	}
 
@@ -355,7 +348,7 @@ class Application {
 				'message' => $exception->getMessage(),
 				'file' => $exception->getFile(),
 				'line' => $exception->getLine(),
-				'trace' => $exception->getBackTrace()
+				'trace' => $exception->getTrace()
 			];
 			$data = [
 				'error' => $error,
