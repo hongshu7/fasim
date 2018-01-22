@@ -197,7 +197,7 @@ class Controller {
 	 */
 	public function redirect($nextUrl, $location = true, $data = null) {
 		if ($nextUrl{0} == '/') $nextUrl = substr($nextUrl, 1);
-		if (strlen($nextUrl) < 8 || substr($nextUrl, 0, 7) != 'http://' || substr($nextUrl, 0, 8) != 'https://') {
+		if (strlen($nextUrl) < 8 || (substr($nextUrl, 0, 7) != 'http://' && substr($nextUrl, 0, 8) != 'https://')) {
 			$nextUrl = $this->config->baseUrl().$nextUrl;
 		}
 		if ($location) {
