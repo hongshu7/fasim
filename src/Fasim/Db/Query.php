@@ -14,7 +14,7 @@ use Fasim\Facades\Config;
  * DB 系统统一查询类
  */
 class Query {
-	private $data = array('table' => '', 'fields' => '', 'where' => array(), 'sort' => array(), 'limit' => 0, 'offset' => 0);
+	private $data = array('table' => '', 'fields' => '', 'where' => array(), 'sort' => array(), 'limit' => 0, 'offset' => 0, 'group' => '');
 	private $modelClass = '';
 	/**
 	 * 构造函数
@@ -65,6 +65,70 @@ class Query {
 		$db = DBFactory::getDB($this->data['table']);
 		$result = $db->count($this->data['table'], $this->data['where']);
 		return intval($result);
+	}
+
+	/**
+	 * 查询最大数
+	 *
+	 * @return array 查询的结果
+	 */
+	public function max($field) {
+		return $this->aggregate('max', $field);
+	}
+
+	/**
+	 * 查询最小数
+	 *
+	 * @return array 查询的结果
+	 */
+	public function min($field) {
+		return $this->aggregate('min', $field);
+	}
+
+	/**
+	 * 查询平均数
+	 *
+	 * @return array 查询的结果
+	 */
+	public function avg($field) {
+		return $this->aggregate('avg', $field);
+	}
+
+	/**
+	 * 查询总和
+	 *
+	 * @return array 查询的结果
+	 */
+	public function sum($field) {
+		return $this->aggregate('sum', $field);
+	}
+
+	protected function aggregate($type, $field) {
+		//todo:field 验证
+		$db = DBFactory::getDB($this->data['table']);
+		$pipeline = [];
+		$group = [];
+		$isGroup = $this->data['group'] !== '';
+		if (!empty($this->data['where'])) {
+			$pipeline['$match'] = $this->data['where'];
+		}
+		$group = [
+			'_id' => $isGroup ? '$'.$this->data['group'] : '1',
+			'result' => [ '$'.$type => '$'.$field ]
+		];
+		$pipeline['$group'] = $group;
+		$results = $db->aggregate($this->data['table'], [ $pipeline ]);
+		if ($isGroup) {
+			if (empty($results) || empty($results[0]->result)) {
+				return [];
+			}
+			return $results[0]->result;
+		} else {
+			if (empty($results) || empty($results[0]->result)) {
+				return 0;
+			}
+			return $results[0]->result[0]->result;
+		}
 	}
 
 	/**
@@ -161,6 +225,10 @@ class Query {
 			case 'skip':
 			case 'offset':
 				$this->data['offset'] = intval($value);
+				break;
+			case 'group':
+			case 'groupby':
+				$this->data['group'] = trim($value);
 				break;
 			default:
 				throw new Exception("method $name not found in ".__class__, 1000);

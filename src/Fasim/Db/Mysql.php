@@ -120,7 +120,7 @@ class Mysql implements IDB {
 		return $this->_conn->insert_id;
 	}
 	
-	public function command($type, $data) {
+	public function aggregate($type, $data) {
 		
 	}
 

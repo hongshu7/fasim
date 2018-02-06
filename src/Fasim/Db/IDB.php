@@ -45,7 +45,7 @@ interface IDB {
 	 * 其它操作
 	 * @return mixed
 	 */
-	public function command($type, $data);
+	public function aggregate($table, $pipeline);
 	
 	/**
 	 * 获取版本号

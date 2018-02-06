@@ -140,12 +140,16 @@ class Mongodb implements IDB {
 	}
 
 	/**
-	 * 其它操作
+	 * 聚合操作
 	 * @return mixed
 	 */
-	public function command($type, $data) {
-		if ($type == 'index') {
+	public function aggregate($table, $pipeline) {
+		if (!$this->_manager) {
+			$this->connect();
 		}
+		$cmd = new \MongoDB\Driver\Command([ 'aggregate' => $table, 'pipeline' => $pipeline ]);
+		$cursor = $this->_manager->executeCommand($this->_database, $cmd);
+		return $cursor->toArray();
 	}
 
 	
