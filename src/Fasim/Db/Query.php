@@ -110,14 +110,14 @@ class Query {
 		$group = [];
 		$isGroup = $this->data['group'] !== '';
 		if (!empty($this->data['where'])) {
-			$pipeline['$match'] = $this->data['where'];
+			$pipeline[] = ['$match' => $this->data['where']];
 		}
 		$group = [
 			'_id' => $isGroup ? '$'.$this->data['group'] : '1',
 			'result' => [ '$'.$type => '$'.$field ]
 		];
-		$pipeline['$group'] = $group;
-		$results = $db->aggregate($this->data['table'], [ $pipeline ]);
+		$pipeline[] = ['$group' => $group];
+		$results = $db->aggregate($this->data['table'], $pipeline);
 		if ($isGroup) {
 			if (empty($results) || empty($results[0]->result)) {
 				return [];
