@@ -16,9 +16,14 @@ class Router {
 	private $uriPath = '';
 	private $queryArray = array();
 
+	private $defaultModule = '';
+	private $defaultController = 'main';
+	private $defaultAction = 'default';
 	private $matchModule = '';
 	private $matchController = '';
 	private $matchAction = '';
+
+	private $routerPrifex = '';
 	
 	public function __construct() {
 		$this->init();
@@ -44,6 +49,10 @@ class Router {
 	public function getMatchAction() {
 		return $this->matchAction;
 	}
+
+	public function getPrifex() {
+		return $this->routerPrifex;
+	}
 	
 	public function init() {
 		//获取配置
@@ -52,12 +61,8 @@ class Router {
 		if (!is_array($this->modules)) {
 			$this->modules = [];
 		}
-
-		$wd = $this->getWebsiteDirectory();
-		$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
-		$fixedRequestUri = substr($requestUri, strlen($wd));
 		
-		
+		//通过domain获取默认信息
 		$domains = Cfg::load('domain');
 		$matched = null;
 		if (isset($domains['__default__'])) {
@@ -78,18 +83,21 @@ class Router {
 			}
 			if ($matched) {
 				if (isset($matched['module'])) {
-					$this->matchModule = $matched['module'];
+					$this->defaultModule = $matched['module'];
 					if (isset($value['controller'])) {
-						$this->matchController = $matched['controller'];
+						$this->defaultController = $matched['controller'];
 						if (isset($value['action'])) {
-							$this->matchAction = $matched['action'];
+							$this->defaultAction = $matched['action'];
 						}
 					}
 				}
 			}
 		}
 
-		//check is contain "index.php"
+
+		$wd = $this->getWebsiteDirectory();
+		$requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
+		$fixedRequestUri = substr($requestUri, strlen($wd));
 		if (strlen($fixedRequestUri) >= 9 && substr($fixedRequestUri, 0, 9) == 'index.php') {
 			$fixedRequestUri = substr($fixedRequestUri, strlen($fixedRequestUri) > 9 && $fixedRequestUri{9} == '/' ? 10 : 9);
 		}
@@ -109,10 +117,21 @@ class Router {
 			$uriPath = str_replace('//', '/', $uriPath);
 		}
 
-		while (substr($uriPath, 0, 1) == '/') {
+		while ($uriPath{0} == '/') {
 			$uriPath = substr($uriPath, 1);
 		}
 		
+		$routerPrifex = Cfg::get('router_prifex', '');
+		if ($routerPrifex != null && $uriPath != '') {
+			//$this->routerPrifex
+			$matches = [];
+			preg_match('/^'.$routerPrifex.'/', $uriPath, $matches);
+			if (count($matches) > 0) {
+				$uriPath = substr($uriPath, strlen($matches[0]));
+				$this->routerPrifex = '/' . $matches[0];
+			}
+		}
+
 		while (substr($uriPath, -1) == '/') {
 			$uriPath = substr($uriPath, 0, -1);
 		}
@@ -222,12 +241,14 @@ class Router {
 				$this->matchAction = array_shift($components);
 			}
 		}
-
+		if ($this->matchModule == '') {
+			$this->matchModule = $this->defaultModule;
+		}
 		if ($this->matchController == '') {
-			$this->matchController = 'main';
+			$this->matchController = $this->defaultController;
 		}
 		if ($this->matchAction == '') {
-			$this->matchAction = 'default';
+			$this->matchAction = $this->defaultAction;
 		}
 		
 		
@@ -245,14 +266,9 @@ class Router {
 
 	public function getWebsiteDirectory() {
 		$wd = '/';
-		if (isset($_SERVER['HTTP_HOST'])) {
-			$scriptName = isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '';
-			if ($scriptName == '' || $scriptName{0} != '/') {
-				$scriptName = '/'.$scriptName;
-			}
-			$directories = explode('/', $scriptName);
-			array_pop($directories);
-			$wd = implode('/', $directories) . '/';
+		if (isset($_SERVER['DOCUMENT_ROOT']) && isset($_SERVER['SCRIPT_FILENAME'])) {
+			$scriptDir = dirname($_SERVER['SCRIPT_FILENAME']) . '/';
+			$wd = substr($scriptDir, strlen($_SERVER['DOCUMENT_ROOT']));
 		}
 		return $wd;
 	}

@@ -71,6 +71,8 @@ class Controller {
 		//初始化系统配置
 		$this->config = $this->app->make('config');
 
+		$this->router = $this->app->make('router');
+
 		$this->input = $this->app->make('input');
 		$this->output = $this->app->make('output');
 
