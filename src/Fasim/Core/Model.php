@@ -597,12 +597,25 @@ class Model {
 
 	public static function updateMany($where, $updates) {
 		$m = new static();
+		$where = static::_convertValues($m, $where);
+		$updates = static::_convertValues($m, $updates);
 		static::db()->update($m->getTableName(), $where, $updates);
 	}
 	
 	public static function deleteMany($where) {
 		$m = new static();
-		static::db()->delete($m->getTableName(), $where);
+		static::db()->delete($m->getTableName(), static::_convertValues($m, $where));
+	}
+
+	private static function _convertValues($m, $where) {
+		if (is_array($where)) {
+			//值转换
+			foreach ((array)$where as $k => $v) {
+				$m->$k = $v;
+				$where[$k] = $m->getOriginalValue($k);
+			}
+		}
+		return $where;
 	}
 			
 	
