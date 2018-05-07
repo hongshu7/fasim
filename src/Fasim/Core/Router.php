@@ -81,14 +81,15 @@ class Router {
 					break;
 				}
 			}
-			if ($matched) {
-				if (isset($matched['module'])) {
-					$this->defaultModule = $matched['module'];
-					if (isset($value['controller'])) {
-						$this->defaultController = $matched['controller'];
-						if (isset($value['action'])) {
-							$this->defaultAction = $matched['action'];
-						}
+		}
+
+		if ($matched) {
+			if (isset($matched['module'])) {
+				$this->defaultModule = $matched['module'];
+				if (isset($value['controller'])) {
+					$this->defaultController = $matched['controller'];
+					if (isset($value['action'])) {
+						$this->defaultAction = $matched['action'];
 					}
 				}
 			}
