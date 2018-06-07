@@ -448,7 +448,9 @@ class Model {
 		//fixed objectid
 		foreach ($source as $k => &$v) {
 			if (isset($this->schema[$k]) && $this->schema[$k]['type'] == 'objectid') {
-				$v = new \MongoDB\BSON\ObjectID($v);
+				if ($v != '') {
+					$v = new \MongoDB\BSON\ObjectID($v);
+				}
 			}
 		}
 		//todo: $this->setDisableRecord();
