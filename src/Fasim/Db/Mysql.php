@@ -300,6 +300,11 @@ class Mysql implements IDB {
 								$itemResult = "$skey NOT IN $sval";
 								break;
 							}
+							case 'null': {
+								$is = $itemVal ? 'IS' : 'IS NOT' ;
+								$itemResult = "$skey $is NULL";
+								break;
+							}
 							case 'between': {
 								$sval = addslashes($itemVal[0]).' AND '.addslashes($itemVal[1]);
 								$itemResult = "($skey BETWEEN $sval)";
