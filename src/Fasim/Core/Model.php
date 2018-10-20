@@ -358,8 +358,12 @@ class Model {
 				return $this->setValue($type, $value);
 			}
 			$result = [];
-			foreach ($value as $v) {
-				$result[] = $this->setValue($type, $v);
+			foreach ($value as $k => $v) {
+				if ($k == '$ne') {
+					$result[$k] = $v;
+				} else {
+					$result[] = $this->setValue($type, $v);
+				}
 			}
 			return $result;
 		}
